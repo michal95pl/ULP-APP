@@ -17,11 +17,10 @@ class StripColorPicker {
               onChanged: (value) {
                 if (snapshot.connectionState == ConnectionState.done)
                 {
-                   state.setState(() {});
+                  state.setState(() {});
                   color1 = value;
                   onChangedPicker1(value.toColor());
                 }
-               
               },
             );
           },

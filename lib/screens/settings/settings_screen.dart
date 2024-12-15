@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:mobile_app/communication/mobile_communication.dart';
+import 'package:mobile_app/communication/mobile_connection_listener.dart';
 import 'package:mobile_app/drawer_nav.dart';
 import 'package:mobile_app/screens/settings/info_board.dart';
 import 'package:mobile_app/statistics_bar.dart';
-import 'package:mobile_app/communication.dart';
-import 'package:mobile_app/status_data.dart';
+import 'package:mobile_app/status_mobile_data.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -13,23 +16,49 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class SettingsScreenState extends State<SettingsScreen>
-implements CommunicationListener {
+  implements MobileConnectionListener {
 
-  static FilledButton _connectionButton(String host, int port, int socketId) {
-    return FilledButton(
-      onPressed: Communication.getConnectionsStatus()[socketId]? null : () =>  {Communication.createConnection(host, port, socketId)}, 
-      style: ButtonStyle(
-        backgroundColor: WidgetStateProperty.all<Color>(const Color.fromARGB(255, 118, 151, 160)),
-      ),
-      child: Text('Connect $socketId'),
+  Future<void>? _connectionFuture;
+  
+  Widget _connectionButton(String host, int port, int socketId) {
+    return FutureBuilder(
+      future: _connectionFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return FilledButton(
+            onPressed: () {},
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all<Color>(const Color.fromARGB(255, 118, 151, 160)),
+            ),
+            child: const Text('Connecting...'),
+          );
+        } else if (MobileCommunication.isConnected()) {
+          return const FilledButton(
+            onPressed: null,
+            child: Text('Connected'),
+          );
+        } else {
+          return FilledButton(
+            onPressed: () {
+              _connectionFuture = MobileCommunication.connect(host, port);
+              setState(() {});
+            },
+            style: ButtonStyle(
+              backgroundColor: WidgetStateProperty.all<Color>(const Color.fromARGB(255, 118, 151, 160)),
+            ),
+            child: const Text('Connect'),
+          );
+        }
+      }
+      
     );
   }
 
   @override
   void initState() {
     super.initState();
-    Communication.setListener(this);
-    Communication.sendStatusCommand(0);
+    MobileCommunication.setListener(this);
+    MobileCommunication.sendStatusCommand();
   }
 
   @override
@@ -43,21 +72,21 @@ implements CommunicationListener {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           InfoBoard.getBoard(),
-          _connectionButton("192.168.2.123", 25567, 0),
+          _connectionButton("192.168.2.116", 25567, 0),
         ],
       ),
     );
   }
   
   @override
-  void onConnectionStatusChanged(List<bool> connections) {
-    debugPrint("[SettingsScreenState] connection status changed: $connections");
-    StatisticsBar.connections = Communication.getConnectionsStatus();
+  void onConnectionMobileStatusChanged(bool connection) {
+    debugPrint("[SettingsScreenState] mobile connection status changed: $connection");
+    StatisticsBar.setMobileConnectionStatus(connection);
     setState(() {});
   }
 
   @override
-  void onStatusDataReceived(StatusData statusData) {
+  void onStatusMobileDataReceived(StatusMobileData statusData) {
     StatisticsBar.pd = statusData.pd;
     StatisticsBar.synch = statusData.communicationModule;
 

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class StatisticsBar
 {
-  static List<bool> _connections = [false, false];
+  static final List<bool> _connections = [false, false];
   static bool _synch = false;
   static bool _pd = false;
 
@@ -55,8 +55,12 @@ class StatisticsBar
     );
   }
 
-  static set connections(List<bool> connections) {
-    _connections = connections;
+  static void setMobileConnectionStatus(bool status) {
+    _connections[0] = status;
+  }
+
+  static void setStationaryConnectionStatus(bool status) {
+    _connections[1] = status;
   }
 
   static set synch(bool synch) {

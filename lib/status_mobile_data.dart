@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-class StatusData {
+class StatusMobileData {
 
   // true if the device is connected to the high power power supply
   bool _usbPD = false;
@@ -24,8 +24,8 @@ class StatusData {
     _temperatureSTM32 = jsonData['temperature_stm32'].toDouble();
   }
 
-  static StatusData getStatusData(String data) {
-    var statusData = StatusData();
+  static StatusMobileData getStatusData(String data) {
+    var statusData = StatusMobileData();
     statusData.decode(data);
     return statusData;
   }
