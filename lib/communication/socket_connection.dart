@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/communication/mobile_connection_listener.dart';
 import 'package:mobile_app/status_mobile_data.dart';
@@ -31,8 +32,9 @@ class SocketConnection {
         (List<int> event) {
           var data = String.fromCharCodes(event);
 
-          // devide data by K at the end (sometimes multiple commands are received at once)
-          var commands = data.split("K");
+          // devide commands by 0x03 (ETX) character (sometimes multiple commands are received at once)
+          // todo: change 0x03 to somethig else
+          var commands = data.split(String.fromCharCode(0x03));
           commands.removeLast();
 
           for (var command in commands) {
@@ -88,14 +90,15 @@ class SocketConnection {
   }
 
   // Send command to the server. Return true if command was received by the server.
-  Future<bool> sendCommand(String command) async {
+  Future<bool> sendCommand(String typeCommand, String data) async {
     if (_socket == null || isWaitingForAck()) {
       return false;
     }
 
     try {
       _ackCompleter = Completer<void>();
-      _socket!.write(command);
+      // preambula has type of command (3 bytes) and length of data (2 bytes). Length of data is used to devide commands on the server side
+      _socket!.write(typeCommand + _convertValueToBytes(data.length) + data);
       await _socket!.flush();
       await _ackCompleter!.future.timeout(const Duration(seconds: 1));
       
@@ -115,5 +118,13 @@ class SocketConnection {
 
   void setListener(MobileConnectionListener listener) {
     _listener = listener;
+  }
+
+  // convert 2 byte value to 2 x 1 byte value in string
+  String _convertValueToBytes(int value) {
+    Uint8List bytes = Uint8List(2);
+    bytes[0] = (value.toInt() >> 8) & 0xFF; // msb
+    bytes[1] = value & 0xFF;        // lsb
+    return String.fromCharCodes(bytes);
   }
 }

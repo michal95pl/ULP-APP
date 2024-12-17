@@ -1,64 +1,71 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_hsvcolor_picker/flutter_hsvcolor_picker.dart';
 
 class StripColorPicker {
 
-  HSVColor color1 = const HSVColor.fromAHSV(1.0, 0.0, 1.0, 1.0);
-  HSVColor color2 = const HSVColor.fromAHSV(1.0, 0.0, 1.0, 1.0);
+  HSVColor _color1 = const HSVColor.fromAHSV(1.0, 0.0, 1.0, 1.0);
+  HSVColor _color2 = const HSVColor.fromAHSV(1.0, 0.0, 1.0, 1.0);
 
-  Row getColorPicker(State state, bool isDoubleColor, Function onChangedPicker1, Function onChangedPicker2) {
+  Future<void>? _onChangedPicker1;
+  Future<void>? _onChangedPicker2;
+
+  // ignore: use_function_type_syntax_for_parameters
+  Row getColorPicker(State state, Future<void> onChangedPicker1(Color color), Future<void> onChangedPicker2(Color color), bool isDoubleColor, bool isActive, bool suspend) {
     return Row(children: [
       Expanded(
         child: FutureBuilder(
-          future: Future.delayed(const Duration(milliseconds: 100)),
+          future: _onChangedPicker1,
           builder: (context, snapshot) {
             return PaletteHuePicker(
-              color: color1,
+              color: _color1,
               onChanged: (value) {
-                if (snapshot.connectionState == ConnectionState.done)
+                if (snapshot.connectionState != ConnectionState.waiting && isActive)
                 {
+                  if (!suspend) {
+                    _color1 = value;
+                    _onChangedPicker1 = onChangedPicker1(_color1.toColor());
+                  }
+                  // todo: move setState to if statement (may increase performance)
                   state.setState(() {});
-                  color1 = value;
-                  onChangedPicker1(value.toColor());
                 }
               },
             );
           },
         ),
-      )
-        // PaletteHuePicker(
-        //   color: color1,
-        //   onChanged: (value) async {
-        //     state.setState(() {
-        //       color1 = value;
-        //     });
-            
-        //     await Future.delayed(const Duration(seconds: 100));
-        //   },
-        // ),
-      //), 
-      // const SizedBox(width: 10),
-      // if (isDoubleColor)
-      //   Expanded(
-      //     child: PaletteHuePicker(
-      //       color: color2,
-      //       onChanged: (value) {
-      //         state.setState(() {
-                
-      //         });
-      //         color2 = value;
-      //         onChangedPicker2(value.toColor());
-      //       },
-      //     ),
-      //   ),
+      ),
+      const SizedBox(width: 10),
+      if (isDoubleColor)
+      Expanded(
+        child: FutureBuilder(
+          future: _onChangedPicker2,
+          builder: (context, snapshot) {
+            return PaletteHuePicker(
+              color: _color2,
+              onChanged: (value) {
+                if (snapshot.connectionState != ConnectionState.waiting && isActive)
+                {
+                  if (!suspend) {
+                    _color2 = value;
+                    _onChangedPicker2 = onChangedPicker2(_color2.toColor());
+                  }
+                  // todo: move setState to if statement (may increase performance)
+                  state.setState(() {});
+                }
+              },
+            );
+          },
+        ),
+      ),
     ]);
   }
 
   HSVColor getColor1() {
-    return color1;
+    return _color1;
   }
 
   HSVColor getColor2() {
-    return color2;
+    return _color2;
   }
 }

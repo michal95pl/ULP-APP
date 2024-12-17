@@ -37,11 +37,11 @@ implements MobileConnectionListener {
       appBar: StatisticsBar.getAppBar(),
       backgroundColor: const Color.fromARGB(255, 40, 53, 87),
       body: Column(children: [
-        stripColorPicker.getColorPicker(this, false, (value) {MobileCommunication.sendPrimaryStripColor(0, value);}, (value) {MobileCommunication.sendSecondaryStripColor(0, value);}), 
+        stripColorPicker.getColorPicker(this, (value) async {await MobileCommunication.sendPrimaryStripColor(value);}, (value) async {await MobileCommunication.sendSecondaryStripColor(value);}, true, MobileCommunication.isConnected(), !MobileCommunication.isReadyToSend()),
         Row(children: [
-          brightnessSlider.getSlider(this, (value) async {await MobileCommunication.sendStripBrightness(0, value);}, MobileCommunication.isConnected(), !MobileCommunication.isReadyToSend()),
-          //speedEffectSlider.getSlider(this, (value) async {await MobileCommunication.sendStripSpeedEffect(0, value);}, MobileCommunication.isConnected()),
-          //effectDropdownButton.getDropdownButton(this, (value) {MobileCommunication.sendStripEffect(0, value);}, MobileCommunication.isConnected()),
+          brightnessSlider.getSlider(this, (value) async {await MobileCommunication.sendStripBrightness(value);}, MobileCommunication.isConnected(), !MobileCommunication.isReadyToSend()),
+          speedEffectSlider.getSlider(this, (value) async {await MobileCommunication.sendStripSpeedEffect(value);}, MobileCommunication.isConnected(), !MobileCommunication.isReadyToSend()),
+          effectDropdownButton.getDropdownButton(this, (value) {MobileCommunication.sendStripEffect(value);}, MobileCommunication.isConnected()),
         ])
       ])
     );

@@ -35,43 +35,43 @@ class MobileCommunication {
 
   /// Send status command. Server will respond with status data.
   static Future<void> sendStatusCommand() async {
-    await connection.sendCommand("STRK");
+    await connection.sendCommand("STR", "");
   }
 
   /// Send brightness to the server.
   /// 
   /// param brightness - brightness value (0-100)
-  static Future<void> sendStripBrightness(int socketId, int brightness) async {
-    await connection.sendCommand("SBW${String.fromCharCode(brightness)}K");
+  static Future<void> sendStripBrightness(int brightness) async {
+    await connection.sendCommand("SBW", String.fromCharCode(brightness));
   }
 
   /// Send speed effect to the server.
   /// 
   /// param speed - speed value (0-100)
-  static Future<void> sendStripSpeedEffect(int socketId, int speed) async {
-    await connection.sendCommand("SSW${String.fromCharCode(speed)}K");
+  static Future<void> sendStripSpeedEffect(int speed) async {
+    await connection.sendCommand("SSW", String.fromCharCode(speed));
   }
 
   /// Send primary color to the server.
   /// 
   /// @param color - color value
-  static Future<void> sendPrimaryStripColor(int socketId, Color color) async {
+  static Future<void> sendPrimaryStripColor(Color color) async {
     // SCW {index} {red} {green} {blue} k
-    await connection.sendCommand("SCW${String.fromCharCode(0)}${String.fromCharCode(color.red)}${String.fromCharCode(color.green)}${String.fromCharCode(color.blue)}K");
+    await connection.sendCommand("PCW", String.fromCharCode(0) + String.fromCharCode(color.red) + String.fromCharCode(color.green) + String.fromCharCode(color.blue));
   }
 
   /// Send secondary color to the server.
   ///   
   /// @param color - color value
-  static Future<void> sendSecondaryStripColor(int socketId, Color color) async {
+  static Future<void> sendSecondaryStripColor(Color color) async {
     // SCW {index} {red} {green} {blue} k
-    await connection.sendCommand("SCW${String.fromCharCode(1)}${String.fromCharCode(color.red)}${String.fromCharCode(color.green)}${String.fromCharCode(color.blue)}K");
+    await connection.sendCommand("SCW", String.fromCharCode(1) + String.fromCharCode(color.red) + String.fromCharCode(color.green) + String.fromCharCode(color.blue));
   }
 
   /// Send effect to the server.
   /// 
   /// @param effect - effect index
-  static Future<void> sendStripEffect(int socketId, int effect) async {
-    await connection.sendCommand("SEW${String.fromCharCode(effect)}K");
+  static Future<void> sendStripEffect(int effect) async {
+    await connection.sendCommand("SEW", String.fromCharCode(effect));
   }
 }
