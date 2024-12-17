@@ -41,7 +41,7 @@ implements MobileConnectionListener {
         Row(children: [
           brightnessSlider.getSlider(this, (value) async {await MobileCommunication.sendStripBrightness(value);}, MobileCommunication.isConnected(), !MobileCommunication.isReadyToSend()),
           speedEffectSlider.getSlider(this, (value) async {await MobileCommunication.sendStripSpeedEffect(value);}, MobileCommunication.isConnected(), !MobileCommunication.isReadyToSend()),
-          effectDropdownButton.getDropdownButton(this, (value) {MobileCommunication.sendStripEffect(value);}, MobileCommunication.isConnected()),
+          effectDropdownButton.getDropdownButton(this, (value) async {await MobileCommunication.sendStripEffect(value);}, MobileCommunication.isConnected(), !MobileCommunication.isReadyToSend()),
         ])
       ])
     );
