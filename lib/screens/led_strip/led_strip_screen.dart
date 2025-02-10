@@ -4,6 +4,7 @@ import 'package:mobile_app/communication/mobile_connection_listener.dart';
 import 'package:mobile_app/drawer_nav.dart';
 import 'package:mobile_app/screens/led_strip/effect_dropdown_button.dart';
 import 'package:mobile_app/screens/led_strip/strip_color_picker.dart';
+import 'package:mobile_app/screens/settings/info_board.dart';
 import 'package:mobile_app/statistics_bar.dart';
 import 'package:mobile_app/status_mobile_data.dart';
 import 'package:mobile_app/text_vertical_slider.dart';
@@ -51,6 +52,9 @@ implements MobileConnectionListener {
   void onConnectionMobileStatusChanged(bool connection) {
     debugPrint("[LedStripScreenState] mobile connection status changed: $connection");
     StatisticsBar.setMobileConnectionStatus(connection);
+    if (!connection) {
+      InfoBoard.hideBoard();
+    }
     setState(() {});
   }
 

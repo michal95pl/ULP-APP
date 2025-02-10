@@ -14,7 +14,7 @@ class SocketConnection {
   static const int connectionTimeout = 2;
 
   // wait for ack from the server. ESP32 will send ack after receiving command. 
-  // It us used, becuse esp32 has problem with buffering commands
+  // It us used to synchronize with microcontrollers
   Completer<void>? _ackCompleter;
 
   Future<void> connect(String host, int port) async {
@@ -33,6 +33,7 @@ class SocketConnection {
           var data = String.fromCharCodes(event);
 
           // devide commands by 0x03 (ETX) character (sometimes multiple commands are received at once)
+          // importand: 0x03 is not allowed in the data
           // todo: change 0x03 to somethig else
           var commands = data.split(String.fromCharCode(0x03));
           commands.removeLast();
@@ -48,6 +49,7 @@ class SocketConnection {
               }
               debugPrint("[SocketConnection] Received status data: $jsonData");
             }
+            // ACW - ack command
             else if (command.startsWith("ACW"))
             {
               _ackCompleter!.complete();

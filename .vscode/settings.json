@@ -1,3 +1,4 @@
 {
-    "terminal.integrated.mouseWheelZoom": true
+    "terminal.integrated.mouseWheelZoom": true,
+    "cmake.sourceDirectory": "C:/Users/micha/Desktop/ULP-APP/linux"
 }

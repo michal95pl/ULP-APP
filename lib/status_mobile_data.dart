@@ -19,9 +19,9 @@ class StatusMobileData {
     _usbPD = (jsonData['usb_pd'].toInt() == 1);
     _communicationModule = (jsonData['communication_module'].toInt() == 1);
     _fan = (jsonData['fan'].toInt() == 1);
-    _temperaturePCB = jsonData['temperature_pcb'].toDouble();
-    _temperatureESP32 = jsonData['temperature_esp32'].toDouble();
-    _temperatureSTM32 = jsonData['temperature_stm32'].toDouble();
+    _temperaturePCB = jsonData['temp_pcb'].toDouble();
+    _temperatureESP32 = jsonData['temp_esp32'].toDouble();
+    _temperatureSTM32 = jsonData['temp_stm32'].toDouble();
   }
 
   static StatusMobileData getStatusData(String data) {

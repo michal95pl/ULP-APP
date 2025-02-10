@@ -6,42 +6,58 @@ class InfoBoard {
   static bool showInfoBoard = false;
 
   static bool fan = false;
-  static double pcbTemperature = 25.0;
-  static double espTemperature = 25.0;
-  static double stmTemperature = 25.0;
+  static double pcbTemperature = 0.0;
+  static double espTemperature = 0.0;
+  static double stmTemperature = 0.0;
 
-  static Column getBoard() {
+  static Container getBoard() {
 
     if (!showInfoBoard) {
-      return const Column();
+      return Container();
     }
 
-    return Column(children: [
-      Row(children: [
-        const SizedBox(width: 10),
-        const Text("Fan", style: TextStyle(color: Colors.white, fontSize: 18)),
-        Icon(Icons.cyclone, color: fan ? Colors.green : Colors.red),
-        Text(" ${fan ? "ON" : "OFF"}", style: const TextStyle(color: Colors.white, fontSize: 18))
-      ]),
-      Row(children: [
-        const SizedBox(width: 10),
-        const Text("PCB temperature", style: TextStyle(color: Colors.white, fontSize: 18)),
-        const Icon(Icons.thermostat, color: Colors.blue),
-        Text(" $pcbTemperature °C", style: const TextStyle(color: Colors.white, fontSize: 18))
-      ]),
-      Row(children: [
-        const SizedBox(width: 10),
-        const Text("ESP temperature", style: TextStyle(color: Colors.white, fontSize: 18)),
-        const Icon(Icons.thermostat, color: Colors.blue),
-        Text(" $espTemperature °C", style: const TextStyle(color: Colors.white, fontSize: 18))
-      ]),
-      Row(children: [
-        const SizedBox(width: 10),
-        const Text("STM temperature", style: TextStyle(color: Colors.white, fontSize: 18)),
-        const Icon(Icons.thermostat, color: Colors.blue),
-        Text(" $stmTemperature °C", style: const TextStyle(color: Colors.white, fontSize: 18))
-      ]),
-    ]);
+    return Container(
+      width: 220,
+      padding: const EdgeInsets.all(6),
+      margin: const EdgeInsets.all(10.0),
+      decoration: const BoxDecoration(
+        color: Color.fromARGB(255, 28, 28, 28),
+        borderRadius: BorderRadius.all(Radius.circular(12.0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Center(
+            child: Text("Mobile ULP", style: TextStyle(color: Color.fromARGB(255, 191, 0, 255), fontSize: 22))
+          ),
+          const SizedBox(width: 20),
+          Row(children: [
+            const SizedBox(width: 10),
+            const Text("Fan", style: TextStyle(color: Colors.white, fontSize: 18)),
+            Icon(Icons.cyclone, color: fan ? Colors.green : const Color.fromARGB(255, 241, 0, 128)),
+            Text(" ${fan ? "ON" : "OFF"}", style: const TextStyle(color: Colors.white, fontSize: 18))
+          ]),
+          Row(children: [
+            const SizedBox(width: 10),
+            const Text("PCB temp", style: TextStyle(color: Colors.white, fontSize: 18)),
+            const Icon(Icons.thermostat, color: Color.fromARGB(255, 0, 171, 231)),
+            Text(" $pcbTemperature °C", style: const TextStyle(color: Colors.white, fontSize: 18))
+          ]),
+          Row(children: [
+            const SizedBox(width: 10),
+            const Text("ESP temp", style: TextStyle(color: Colors.white, fontSize: 18)),
+            const Icon(Icons.thermostat, color: Color.fromARGB(255, 0, 171, 231)),
+            Text(" $espTemperature °C", style: const TextStyle(color: Colors.white, fontSize: 18))
+          ]),
+          Row(children: [
+            const SizedBox(width: 10),
+            const Text("STM temp", style: TextStyle(color: Colors.white, fontSize: 18)),
+            const Icon(Icons.thermostat, color: Color.fromARGB(255, 0, 171, 231)),
+            Text(" $stmTemperature °C", style: const TextStyle(color: Colors.white, fontSize: 18))
+          ]),     
+        ],
+      )
+    );
   }
 
   static set fanStatus(bool status) {
@@ -62,5 +78,9 @@ class InfoBoard {
 
   static void showBoard() {
     showInfoBoard = true;
+  }
+
+  static void hideBoard() {
+    showInfoBoard = false;
   }
 }

@@ -56,6 +56,11 @@ class StatisticsBar
   }
 
   static void setMobileConnectionStatus(bool status) {
+    // if mobile connection is lost, then synch and pd are also disabled
+    if (!status) {
+      _synch = false;
+      _pd = false;
+    }
     _connections[0] = status;
   }
 
