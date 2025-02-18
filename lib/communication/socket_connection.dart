@@ -40,7 +40,7 @@ class SocketConnection {
 
           for (var command in commands) {
             // ST - status command, W - write type command
-            if (command.startsWith("STW"))
+            if (command.startsWith("WST"))
             {
               // remove command type
               var jsonData = command.substring(3);
@@ -50,7 +50,7 @@ class SocketConnection {
               debugPrint("[SocketConnection] Received status data: $jsonData");
             }
             // ACW - ack command
-            else if (command.startsWith("ACW"))
+            else if (command.startsWith("WAC"))
             {
               _ackCompleter!.complete();
               
