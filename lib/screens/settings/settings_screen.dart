@@ -22,11 +22,19 @@ class SettingsScreenState extends State<SettingsScreen>
   static bool statusUpdate = false;
   Future<void>? _connectionFuture;
 
+  Timer? _statusTimer;
+
   @override
   void initState() {
     super.initState();
     MobileCommunication.setListener(this);
     MobileCommunication.sendStatusCommand();
+
+    // resend status command every 3 seconds to keep the UI updated
+    _statusTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      MobileCommunication.sendStatusCommand();
+    });
+
     _readSetAddress(_textControllers, 0);
   }
 
@@ -72,6 +80,16 @@ class SettingsScreenState extends State<SettingsScreen>
     InfoBoard.stmTemperature = statusData.temperatureSTM32;
     InfoBoard.showBoard();
     setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _statusTimer?.cancel();
+    // clean up
+    for (var controller in _textControllers) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   Widget _connectionButton(List<TextEditingController> controllers, List<bool> errors, int index) {

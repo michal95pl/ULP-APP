@@ -68,4 +68,12 @@ class StripColorPicker {
   HSVColor getColor2() {
     return _color2;
   }
+
+  void setColor1(List<int> color) {
+    _color1 = HSVColor.fromColor(Color.fromARGB(255, color[0], color[1], color[2]));
+  }
+
+  void setColor2(List<int> color) {
+    _color2 = HSVColor.fromColor(Color.fromARGB(255, color[0], color[1], color[2]));
+  }
 }

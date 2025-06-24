@@ -57,7 +57,7 @@ class MobileCommunication {
   /// @param color - color value
   static Future<void> sendPrimaryStripColor(Color color) async {
     // SCW {index} {red} {green} {blue} k
-    await connection.sendCommand("WPC", String.fromCharCode(0) + String.fromCharCode(color.red) + String.fromCharCode(color.green) + String.fromCharCode(color.blue));
+    await connection.sendCommand("WSC", String.fromCharCode(0) + String.fromCharCode(color.red) + String.fromCharCode(color.green) + String.fromCharCode(color.blue));
   }
 
   /// Send secondary color to the server.

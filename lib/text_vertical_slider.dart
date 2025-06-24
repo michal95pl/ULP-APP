@@ -73,4 +73,8 @@ class TextVerticalSlider {
   }
 
   get value => _value;
+  
+  void updateValue(double newValue) {
+    _value = newValue;
+  }
 }

@@ -16,7 +16,10 @@ class DrawerNav
           color: isActuallyUsed? const Color.fromARGB(255, 149, 61, 255) : const Color.fromARGB(255, 189, 189, 189)
           )
         ),
-      onTap: !isActuallyUsed? () => Navigator.pushNamed(context, route) : null,
+      onTap: !isActuallyUsed? () {
+          Navigator.pop(context);
+          Navigator.pushReplacementNamed(context, route);
+        } : null,
     );
   }
 

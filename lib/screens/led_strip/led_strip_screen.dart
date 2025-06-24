@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:mobile_app/communication/mobile_communication.dart';
 import 'package:mobile_app/communication/mobile_connection_listener.dart';
@@ -24,11 +26,17 @@ implements MobileConnectionListener {
   static EffectDropdownButton effectDropdownButton = EffectDropdownButton();
   static StripColorPicker stripColorPicker = StripColorPicker();
 
+  Timer? _statusTimer;
+
   @override
   void initState() {
     super.initState();
     MobileCommunication.setListener(this);
-    MobileCommunication.sendStatusCommand();
+    MobileCommunication.sendStatusCommand(); // initial status request
+    // resend status command every 3 seconds to keep the UI updated
+    _statusTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      MobileCommunication.sendStatusCommand();
+    });
   }
 
   @override
@@ -62,6 +70,17 @@ implements MobileConnectionListener {
   void onStatusMobileDataReceived(StatusMobileData statusData) {
     StatisticsBar.pd = statusData.pd;
     StatisticsBar.synch = statusData.communicationModule;
+    brightnessSlider.updateValue(statusData.stripBrightness.toDouble());
+    speedEffectSlider.updateValue(statusData.stripSpeedEffect.toDouble());
+    effectDropdownButton.currentEffect = EFFECTS.values[statusData.stripEffect];
+    stripColorPicker.setColor1(statusData.stripFirstColor);
+    stripColorPicker.setColor2(statusData.stripSecondColor);
     setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _statusTimer?.cancel();
+    super.dispose();
   }
 }

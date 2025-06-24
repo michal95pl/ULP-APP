@@ -49,7 +49,7 @@ class SocketConnection {
               }
               debugPrint("[SocketConnection] Received status data: $jsonData");
             }
-            // ACW - ack command
+            // WAC - ack command
             else if (command.startsWith("WAC"))
             {
               _ackCompleter!.complete();
