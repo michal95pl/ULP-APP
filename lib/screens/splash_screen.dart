@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/data/pixel_storage.dart';
+import 'package:mobile_app/data/settings_file.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -13,9 +15,11 @@ class SplashScreenState extends State<SplashScreen> with SingleTickerProviderSta
   late AnimationController _gradientAnimationController;
   late Animation _gradientAnimation;
 
+  bool _isDataLoaded = false;
+
   @override
   void initState() {
-
+    super.initState();
     _gradientAnimationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3)
@@ -29,76 +33,78 @@ class SplashScreenState extends State<SplashScreen> with SingleTickerProviderSta
     }));
 
     _gradientAnimationController.repeat(reverse: true);
-    super.initState();
+    _loadAppData();
+  }
+
+  Future<void> _loadAppData() async {
+    await SettingsFile.openFile('settings.json');
+    await PixelStorage.init();
+
+    if (mounted) {
+      setState(() {
+        _isDataLoaded = true;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _gradientAnimationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        body: Container(
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage("assets/images/splash_background.bmp"),
-          fit: BoxFit.cover
-        )
-      ),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-
-            ShaderMask(
-              shaderCallback: (rect) =>
-                LinearGradient(
-                  colors: const [Color.fromARGB(255, 123, 183, 255), Color.fromARGB(255, 255, 255, 255)],
-                  stops: [_gradientAnimation.value - 0.5, _gradientAnimation.value]
-                ).createShader(rect),
-          
-              child: const Text(
-                "ULP",
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/images/splash_background.bmp"),
+            fit: BoxFit.cover
+          )
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ShaderMask(
+                shaderCallback: (rect) =>
+                  LinearGradient(
+                    colors: const [Color.fromARGB(255, 123, 183, 255), Color.fromARGB(255, 255, 255, 255)],
+                    stops: [_gradientAnimation.value - 0.5, _gradientAnimation.value]
+                  ).createShader(rect),
+                child: const Text(
+                  "ULP",
+                  style: TextStyle(
+                    fontSize: 100,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                    letterSpacing: 2.0,
+                  ),
+                ),
+              ),
+              const Text(
+                "Made and designed by Michal Lichtarski\nfor wypas impry",
+                textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 100,
-                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w400,
                   color: Colors.white
                 ),
               ),
-            ),
-
-            const Text(
-              "Made and designed by Michal Lichtarski",
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
-                color: Colors.white
-              ),
-            ),
-
-            const Text(
-              "for wypas impry",
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w400,
-                color: Colors.white
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            ElevatedButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/settings');
-                },
-                child: const Text('    open    '),
-              )
-            
-          ],
-        ) 
-      )
-    )
-      )
-    );
-    
+              const SizedBox(height: 20),
+              if (_isDataLoaded)
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacementNamed(context, '/settings');
+                  },
+                  child: const Text('    open    '),
+                )
+            ],
+          ),
+        ),
+      ),
+    ); 
   }
 
 }
