@@ -15,7 +15,7 @@ implements PreferredSizeWidget {
   });
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 10);
 
   static Column _buildIconWithDescription(IconData iconData, String description, bool status) {
     return Column(
@@ -42,24 +42,37 @@ implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: AppColors.cardBackgroundColor,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
       automaticallyImplyLeading: false,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          bottom: Radius.circular(30),
+      flexibleSpace: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        decoration: BoxDecoration(
+          color: AppColors.cardBackgroundColor,
+          borderRadius: const BorderRadius.vertical(
+            bottom: Radius.circular(30),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
-      ),
-      flexibleSpace: SafeArea(
-        child: Center(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildIconWithDescription(Icons.sensors, 'conn 1', isMobileConnected),
-              const SizedBox(width: 40),
-              _buildIconWithDescription(Icons.sensors, 'conn 2', isStageConnected),
-              const SizedBox(width: 40),
-              _buildIconWithDescription(Icons.lan, 'synch', isSynchEnabled),
-            ],
+        child: SafeArea(
+          bottom: false,
+          child: Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildIconWithDescription(Icons.sensors, 'conn 1', isMobileConnected),
+                const SizedBox(width: 40),
+                _buildIconWithDescription(Icons.sensors, 'conn 2', isStageConnected),
+                const SizedBox(width: 40),
+                _buildIconWithDescription(Icons.lan, 'synch', isSynchEnabled),
+              ],
+            ),
           ),
         ),
       ),

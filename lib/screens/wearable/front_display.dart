@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mobile_app/widgets/drawer_nav.dart';
+import 'package:mobile_app/widgets/bottom_nav.dart';
 import 'package:mobile_app/widgets/pixel_painter.dart';
 import 'package:mobile_app/widgets/effect_dropdown_button.dart';
 import 'package:mobile_app/widgets/statistics_app_bar.dart';
@@ -21,7 +21,7 @@ class FrontDisplayState extends State<FrontDisplay> {
   Widget build(BuildContext context) {
     
     return Scaffold(
-      drawer: DrawerNav.getDrawerNav(context),
+      // drawer: DrawerNav.getDrawerNav(context),
       appBar: StatisticsAppBar(isMobileConnected: false, isStageConnected: false, isSynchEnabled: false),
       backgroundColor: const Color.fromARGB(255, 40, 53, 87),
       body: Column(

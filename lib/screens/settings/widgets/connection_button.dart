@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/utils/app_colors.dart';
 
 enum ConnectionStatus {disconnected, connecting, connected}
 
@@ -21,7 +22,7 @@ class ConnectionButton extends StatelessWidget {
         return FilledButton(
           onPressed: null,
           style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all<Color>(const Color.fromARGB(255, 118, 151, 160)),
+            backgroundColor: WidgetStateProperty.all<Color>(AppColors.buttonColor),
           ),
           child: const Text('Connecting...')
         );
@@ -30,7 +31,7 @@ class ConnectionButton extends StatelessWidget {
         return FilledButton(
         onPressed: onDisconnectPressed,
           style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all<Color>(const Color.fromARGB(255, 118, 151, 160)),
+            backgroundColor: WidgetStateProperty.all<Color>(AppColors.buttonColor),
           ),
           child: const Text('Disconnect')
         );
@@ -39,7 +40,7 @@ class ConnectionButton extends StatelessWidget {
         return FilledButton(
           onPressed: onConnectPressed,
           style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.all<Color>(const Color.fromARGB(255, 118, 151, 160)),
+            backgroundColor: WidgetStateProperty.all<Color>(AppColors.buttonColor),
           ),
           child: const Text('Connect'),
         );

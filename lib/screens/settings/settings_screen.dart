@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/communication/device_manager.dart';
 import 'package:mobile_app/communication/devices_listener.dart';
-import 'package:mobile_app/widgets/drawer_nav.dart';
+import 'package:mobile_app/utils/app_routes.dart';
+import 'package:mobile_app/widgets/bottom_nav.dart';
 import 'package:mobile_app/screens/settings/widgets/connection_panel.dart';
 import 'package:mobile_app/widgets/statistics_app_bar.dart';
 import 'package:mobile_app/utils/app_colors.dart';
@@ -24,7 +25,7 @@ class SettingsScreenState extends State<SettingsScreen>
         isStageConnected: DeviceManager.instance.stage.isConnected(), 
         isSynchEnabled: false
       ),
-      drawer: DrawerNav.getDrawerNav(context),
+      bottomNavigationBar: BottomNav(currentRoute: AppRoutes.settings, isMobileConnected: DeviceManager.instance.mobile.isConnected(), isStageConnected: DeviceManager.instance.stage.isConnected()),
       backgroundColor: AppColors.backgroundColor,
       body: Center(
         child: SingleChildScrollView(
