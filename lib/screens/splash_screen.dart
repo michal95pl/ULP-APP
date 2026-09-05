@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/data/pixel_storage.dart';
 import 'package:mobile_app/data/settings_file.dart';
+import 'package:mobile_app/utils/app_routes.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -63,46 +64,65 @@ class SplashScreenState extends State<SplashScreen> with SingleTickerProviderSta
             fit: BoxFit.cover
           )
         ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ShaderMask(
-                shaderCallback: (rect) =>
-                  LinearGradient(
-                    colors: const [Color.fromARGB(255, 123, 183, 255), Color.fromARGB(255, 255, 255, 255)],
-                    stops: [_gradientAnimation.value - 0.5, _gradientAnimation.value]
-                  ).createShader(rect),
-                child: const Text(
-                  "ULP",
+        child: Stack(
+          children: [
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ShaderMask(
+                    shaderCallback: (rect) =>
+                      LinearGradient(
+                        colors: const [Color.fromARGB(255, 123, 183, 255), Color.fromARGB(255, 255, 255, 255)],
+                        stops: [_gradientAnimation.value - 0.5, _gradientAnimation.value]
+                      ).createShader(rect),
+                    child: const Text(
+                      "ULP",
+                      style: TextStyle(
+                        fontSize: 100,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 2.0,
+                      ),
+                    ),
+                  ),
+                  const Text(
+                    "Made and designed by Michal Lichtarski\nfor wypas impry",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  if (_isDataLoaded)
+                    ElevatedButton(
+                      onPressed: () {
+                        AppRoutes.navigateTo(context, AppRoutes.settings);
+                      },
+                      child: const Text('    open    '),
+                    )
+                ],
+              ),
+            ),
+            Positioned(
+              bottom: 16.0,
+              right: 16.0,
+              child: SafeArea(
+                child: Text(
+                  "v3.0",
                   style: TextStyle(
-                    fontSize: 100,
+                    color: Colors.white.withAlpha(128),
+                    fontSize: 14.0,
                     fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                    letterSpacing: 2.0,
+                    letterSpacing: 1.0,
                   ),
                 ),
-              ),
-              const Text(
-                "Made and designed by Michal Lichtarski\nfor wypas impry",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w400,
-                  color: Colors.white
-                ),
-              ),
-              const SizedBox(height: 20),
-              if (_isDataLoaded)
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pushReplacementNamed(context, '/settings');
-                  },
-                  child: const Text('    open    '),
-                )
-            ],
-          ),
-        ),
+              )
+            )
+          ]
+        ) 
       ),
     ); 
   }

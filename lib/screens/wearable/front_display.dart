@@ -3,7 +3,7 @@ import 'package:mobile_app/widgets/bottom_nav.dart';
 import 'package:mobile_app/widgets/pixel_painter.dart';
 import 'package:mobile_app/widgets/effect_dropdown_button.dart';
 import 'package:mobile_app/widgets/statistics_app_bar.dart';
-import 'package:mobile_app/widgets/text_vertical_slider.dart';
+import 'package:mobile_app/widgets/text_slider.dart';
 
 class FrontDisplay extends StatefulWidget {
   const FrontDisplay({super.key});
@@ -15,7 +15,7 @@ class FrontDisplay extends StatefulWidget {
 class FrontDisplayState extends State<FrontDisplay> {
 
   static final PixelPainter pixelPainter = PixelPainter(8, 8, 1, ValueNotifier<bool>(false));
-  static final TextVerticalSlider brightnessSlider = TextVerticalSlider("Brightness", 100, const Color.fromARGB(255, 243, 32, 250));
+  // static final TextVerticalSlider brightnessSlider = TextVerticalSlider("Brightness", 100, const Color.fromARGB(255, 243, 32, 250));
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +36,7 @@ class FrontDisplayState extends State<FrontDisplay> {
             },
           ),
           Row(children: [
-            brightnessSlider.getSlider(this, (value) async {}, true, false)
+            // brightnessSlider.getSlider(this, (value) async {}, true, false)
           ])
         ],
         

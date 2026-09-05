@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_app/communication/device_error.dart';
 import 'package:mobile_app/communication/device_manager.dart';
 import 'package:mobile_app/model/status_mobile_data.dart';
-import 'package:mobile_app/model/status_stage_data.dart';
+import 'package:mobile_app/model/stage/status_stage_data.dart';
 import 'package:async/async.dart';
 import 'package:mobile_app/screens/settings/settings_screen.dart';
 import 'package:mobile_app/utils/app_colors.dart';
@@ -17,7 +17,6 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
   @override
   void initState() {
     super.initState();
-
     final mobileComm = DeviceManager.instance.mobile;
     final stageComm = DeviceManager.instance.stage;
 
@@ -45,26 +44,43 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
     });
   }
 
+  @mustCallSuper
   void onMobileConnectionChanged(bool isConnected) {}
-  void onMobileDataReceived(StatusMobileData data) {}
+
+  @mustCallSuper
+  void onMobileDataReceived(StatusMobileData data) {
+    DeviceManager.instance.lastMobileStatus = data;
+  }
 
   @mustCallSuper
   void onMobileErrorReceived(DeviceError error) {
-    if (error.type != DeviceErrorType.invalidHostType && widget is SettingsScreen) {
-      _showErrorSnackBar("Mobile", error);
+    final isCurrentScreen = ModalRoute.of(context)?.isCurrent ?? false;
+    if (isCurrentScreen) {
+      if ((error.type != DeviceErrorType.invalidHostType && widget is SettingsScreen) || widget is! SettingsScreen) {
+        _showErrorSnackBar("Mobile", error);
+      }
     }
   }
   
+  @mustCallSuper
   void onStageConnectionChanged(bool isConnected) {}
-  void onStageDataReceived(StatusStageData data) {}
+
+  @mustCallSuper
+  void onStageDataReceived(StatusStageData data) {
+    DeviceManager.instance.lastStageStatus = data;
+  }
 
   @mustCallSuper
   void onStageErrorReceived(DeviceError error) {
-    if (error.type != DeviceErrorType.invalidHostType && widget is SettingsScreen) {
-      _showErrorSnackBar("Stage", error);
+    final isCurrentScreen = ModalRoute.of(context)?.isCurrent ?? false;
+    if (isCurrentScreen) {
+      if ((error.type != DeviceErrorType.invalidHostType && widget is SettingsScreen) || widget is! SettingsScreen) {
+        _showErrorSnackBar("Stage", error);
+      }
     }
   }
 
+  @mustCallSuper
   void onConnectionsHostInfoChanged() {}
 
   void _showErrorSnackBar(String deviceName, DeviceError error) {

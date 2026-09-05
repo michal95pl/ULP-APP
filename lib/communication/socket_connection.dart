@@ -14,6 +14,8 @@ class SocketConnection {
   Socket? _socket;
   StreamSubscription<List<int>>? _socketSubscription;
   
+  Future<void> _commandQueue = Future.value();
+
   static const int connectionTimeout = 2;
 
   // wait for ack from the server. ESP32 will send ack after receiving command. 
@@ -117,6 +119,7 @@ class SocketConnection {
   }
 
   Future<void> closeConnection() async {
+    _commandQueue = Future.value();
     if (_socketSubscription != null) {
       await _socketSubscription!.cancel();
       _socketSubscription = null;
@@ -179,6 +182,35 @@ class SocketConnection {
     } finally {
       _ackCompleter = null;
     } 
+  }
+
+  Future<bool> sendGuaranteedCommand(String typeCommand, [List<int>? data]) {
+    final completer = Completer<bool>();
+
+    _commandQueue = _commandQueue.then((_) async {
+      if (_socket == null) {
+        completer.complete(false);
+        return;
+      }
+      if (isWaitingForAck()) {
+        try {
+          await _ackCompleter!.future;
+        } catch (_) {
+        }
+      }
+      final result = await sendCommand(typeCommand, data);
+      
+      if (!completer.isCompleted) {
+        completer.complete(result);
+      }
+      
+    }).catchError((error) {
+      if (!completer.isCompleted) {
+        completer.complete(false);
+      }
+    });
+
+    return completer.future;
   }
 
   bool isConnected() {

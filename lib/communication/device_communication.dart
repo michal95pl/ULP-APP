@@ -68,7 +68,7 @@ abstract class DeviceCommunication<T> {
 
   /// Send status command. Server will respond with status data.
   Future<void> sendStatusCommand() async {
-    await _connection.sendCommand("RST");
+    await _connection.sendGuaranteedCommand("RST");
   }
 
   /// Send brightness to the server.
@@ -76,6 +76,10 @@ abstract class DeviceCommunication<T> {
   /// param brightness - brightness value (0-100)
   Future<void> sendBrightness(int index, int brightness) async {
     await _connection.sendCommand("WSB", <int>[index, brightness]);
+  }
+
+  Future<void> sendGuaranteedBrightness(int index, int brightness) async {
+    await _connection.sendGuaranteedCommand("WSB", <int>[index, brightness]);
   }
 
   /// Send speed effect to the server.
@@ -93,10 +97,14 @@ abstract class DeviceCommunication<T> {
     await _connection.sendCommand("WSC", <int>[index, color.redInt, color.greenInt, color.blueInt]);
   }
 
+  Future<void> sendGuaranteedColor(int index, Color color) async {
+    await _connection.sendGuaranteedCommand("WSC", <int>[index, color.redInt, color.greenInt, color.blueInt]);
+  }
+
   /// Send effect to the server.
   /// 
   /// @param effect - effect index
-  Future<void> sendEffect(int index, int effect) async {
-    await _connection.sendCommand("WSE", <int>[index, effect]);
+  Future<void> sendGuaranteedEffect(int index, int effect) async {
+    await _connection.sendGuaranteedCommand("WSE", <int>[index, effect]);
   }
 }

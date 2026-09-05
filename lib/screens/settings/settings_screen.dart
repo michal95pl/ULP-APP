@@ -48,12 +48,14 @@ class SettingsScreenState extends State<SettingsScreen>
 
   @override
   void onStageConnectionChanged(bool isConnected) {
+    super.onStageConnectionChanged(isConnected);
     debugPrint("[SettingsScreenState] stage connection status changed: $isConnected");
     setState(() {});
   }
   
   @override
   void onMobileConnectionChanged(bool isConnected) {
+    super.onMobileConnectionChanged(isConnected);
     debugPrint("[SettingsScreenState] mobile connection status changed: $isConnected");
     setState(() {});
   }

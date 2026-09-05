@@ -3,13 +3,13 @@ import 'package:mobile_app/utils/app_colors.dart';
 import 'package:mobile_app/utils/app_routes.dart';
 
 class _RoutableNavItem extends BottomNavigationBarItem {
-  final String route;
+  final AppRoutes route;
   _RoutableNavItem({required this.route, required super.icon, required super.label});
 }
 
 class BottomNav extends StatelessWidget
 {
-  final String currentRoute;
+  final AppRoutes currentRoute;
 
   final bool isMobileConnected;
   final bool isStageConnected;
@@ -89,7 +89,7 @@ class BottomNav extends StatelessWidget
               items: routableNavItems,
               onTap: (index) {
                 if (index == currentIndex) return;
-                Navigator.pushReplacementNamed(context, routableNavItems[index].route);
+                AppRoutes.navigateTo(context, routableNavItems[index].route);
               },
             ),
           ),

@@ -17,7 +17,7 @@ class MobileCommunication
   }
 
   Future<void> sendStripEffect(int effect) async {
-    await sendEffect(0, effect);
+    await sendGuaranteedEffect(0, effect);
   }
 
   Future<void> sendStripBrightness(int brightness) async {
