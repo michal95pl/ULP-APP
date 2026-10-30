@@ -9,10 +9,14 @@ import 'package:async/async.dart';
 import 'package:mobile_app/screens/settings/settings_screen.dart';
 import 'package:mobile_app/utils/app_snack_bar.dart';
 
+/// Implements basic functionality to handle device connection changes, data received and errors received.
 mixin DevicesListener<T extends StatefulWidget> on State<T> {
 
   final List<StreamSubscription> _subscriptions = [];
   // Timer? _statusTimer;
+
+  bool get fetchMobileStatus => false;
+  bool get fetchStageStatus => false;
 
   @override
   void initState() {
@@ -35,8 +39,14 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
       ]).listen((_) => onConnectionsHostInfoChanged())
     ]);
 
-    mobileComm.sendStatusCommand();
-    stageComm.sendStatusCommand();
+    // gets the latest status from devices depending on the screen is being shown.
+    if (fetchMobileStatus) {
+      mobileComm.sendStatusCommand();
+    }
+    
+    if (fetchStageStatus) {
+      stageComm.sendStatusCommand();
+    }
 
     // _statusTimer = Timer.periodic(const Duration(seconds: 5), (_) {
     //   mobileComm.sendStatusCommand();
