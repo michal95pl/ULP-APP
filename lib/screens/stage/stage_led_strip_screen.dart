@@ -3,14 +3,13 @@ import 'package:mobile_app/communication/device_connection_guards.dart';
 import 'package:mobile_app/communication/device_manager.dart';
 import 'package:mobile_app/communication/devices_listener.dart';
 import 'package:mobile_app/model/stage/stage_strip_data.dart';
-import 'package:mobile_app/screens/stage/models/addresable_strip_effects.dart';
-import 'package:mobile_app/screens/stage/models/analog_strip_effects.dart';
+import 'package:mobile_app/model/stage/effects/stage_addresable_strip_effects.dart';
+import 'package:mobile_app/model/stage/effects/stage_analog_strip_effects.dart';
 import 'package:mobile_app/screens/stage/widgets/led_mixer_panel.dart';
 import 'package:mobile_app/utils/app_routes.dart';
 import 'package:mobile_app/widgets/bottom_nav.dart';
 import 'package:mobile_app/model/stage/status_stage_data.dart';
 import 'package:mobile_app/widgets/statistics_app_bar.dart';
-import 'package:mobile_app/model/status_mobile_data.dart';
 
 class StageLedStripScreen extends StatefulWidget {
   const StageLedStripScreen({super.key});
@@ -24,24 +23,24 @@ with DevicesListener, RequiresStageConnection {
 
   @override
   Widget build(BuildContext context) {
-  List<StageStripData<AddresableStripEffects>> addresableStrips = 
+  List<StageStripData<StageAddresableStripEffects>> addresableStrips = 
     DeviceManager.instance.lastStageStatus?.addresableStrips ?? 
     List.generate(
-      2, 
-      (index) => StageStripData.getDefaultData<AddresableStripEffects>(
-        AddresableStripEffects.color,
+      2,
+      (index) => StageStripData.getDefaultData(
+        StageAddresableStripEffects.color,
       ),
     );
 
-  List<StageStripData<AnalogStripEffects>> analogStrips = 
+  List<StageStripData<StageAnalogStripEffects>> analogStrips = 
     DeviceManager.instance.lastStageStatus?.analogStrips ??
     List.generate(
-      2, 
-      (index) => StageStripData.getDefaultData<AnalogStripEffects>(
-        AnalogStripEffects.color,
+      2,
+      (index) => StageStripData.getDefaultData(
+        StageAnalogStripEffects.color,
       ),
     );
-      
+
     return Scaffold(
       appBar: StatisticsAppBar(
         isMobileConnected: DeviceManager.instance.mobile.isConnected(), 
@@ -87,13 +86,6 @@ with DevicesListener, RequiresStageConnection {
   void onMobileConnectionChanged(bool isConnected) {
     super.onMobileConnectionChanged(isConnected);
     debugPrint("[StageLedStripScreenState] mobile connection status changed: $isConnected");
-    setState(() {});
-  }
-
-  @override
-  void onMobileDataReceived(StatusMobileData data) {
-    super.onMobileDataReceived(data);
-    debugPrint("[StageLedStripScreenState] mobile data received: $data");
     setState(() {});
   }
 

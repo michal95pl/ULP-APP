@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-class StageStripData<T> {
+class StageStripData<T extends Enum> {
   final T effect;
   final int speedEffect;
   final int brightness;
@@ -22,7 +22,7 @@ class StageStripData<T> {
     required this.smoothness,
   });
 
-  static StageStripData<T> getDefaultData<T>(T defaultEffect) {
+  factory StageStripData.getDefaultData(T defaultEffect) {
     return StageStripData<T>(
       effect: defaultEffect,
       speedEffect: 50,

@@ -1,7 +1,7 @@
 
 // This class is responsible for communication with the mobile ULP
-import 'package:mobile_app/communication/device_communication.dart';
-import 'package:mobile_app/communication/host_type.dart';
+import 'package:mobile_app/communication/devices/device_communication.dart';
+import 'package:mobile_app/communication/model/host_type.dart';
 import 'package:mobile_app/model/stage/status_stage_data.dart';
 
 class StageCommunication 

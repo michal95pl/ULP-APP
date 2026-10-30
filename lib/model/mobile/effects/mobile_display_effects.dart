@@ -1,0 +1,4 @@
+enum MobileDisplayEffects {
+  matrix,
+  text,
+}

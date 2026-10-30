@@ -3,9 +3,8 @@ import 'package:mobile_app/communication/device_manager.dart';
 import 'package:mobile_app/communication/devices_listener.dart';
 import 'package:mobile_app/widgets/bottom_nav.dart';
 import 'package:mobile_app/widgets/effect_dropdown_button.dart';
-import 'package:mobile_app/screens/settings/widgets/info_board.dart';
 import 'package:mobile_app/widgets/statistics_app_bar.dart';
-import 'package:mobile_app/model/status_mobile_data.dart';
+import 'package:mobile_app/model/mobile/status_mobile_data.dart';
 import 'package:mobile_app/widgets/text_slider.dart';
 
 class LedStripScreen extends StatefulWidget {
@@ -43,9 +42,6 @@ with DevicesListener {
   @override
   void onMobileConnectionChanged(bool isConnected) {
     debugPrint("[LedStripScreenState] mobile connection status changed: $isConnected");
-    if (!isConnected) {
-      InfoBoard.hideBoard();
-    }
     setState(() {});
   }
 

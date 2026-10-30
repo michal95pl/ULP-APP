@@ -1,18 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:mobile_app/communication/device_error.dart';
+import 'package:mobile_app/communication/model/device_error.dart';
 import 'package:mobile_app/communication/device_manager.dart';
-import 'package:mobile_app/model/status_mobile_data.dart';
+import 'package:mobile_app/model/mobile/status_mobile_data.dart';
 import 'package:mobile_app/model/stage/status_stage_data.dart';
 import 'package:async/async.dart';
 import 'package:mobile_app/screens/settings/settings_screen.dart';
-import 'package:mobile_app/utils/app_colors.dart';
+import 'package:mobile_app/utils/app_snack_bar.dart';
 
 mixin DevicesListener<T extends StatefulWidget> on State<T> {
 
   final List<StreamSubscription> _subscriptions = [];
-  Timer? _statusTimer;
+  // Timer? _statusTimer;
 
   @override
   void initState() {
@@ -38,10 +38,10 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
     mobileComm.sendStatusCommand();
     stageComm.sendStatusCommand();
 
-    _statusTimer = Timer.periodic(const Duration(seconds: 5), (_) {
-      mobileComm.sendStatusCommand();
-      stageComm.sendStatusCommand();
-    });
+    // _statusTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+    //   mobileComm.sendStatusCommand();
+    //   stageComm.sendStatusCommand();
+    // });
   }
 
   @mustCallSuper
@@ -86,52 +86,7 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
   void _showErrorSnackBar(String deviceName, DeviceError error) {
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        backgroundColor: AppColors.snackbarBackgroundColor,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-          side: const BorderSide(color: AppColors.redSnackbarColor, width: 1),
-        ),
-        content: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, color: AppColors.redSnackbarColor, size: 28),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    deviceName,
-                    style: const TextStyle(
-                      color: Colors.white, 
-                      fontSize: 14, 
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    error.message,
-                    style: const TextStyle(
-                      color: Colors.white70,
-                      fontSize: 13,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    AppSnackBar.showError(context, title: deviceName, message: error.message);
   }
 
   @override
@@ -139,7 +94,7 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
     for (final sub in _subscriptions) {
       sub.cancel();
     }
-    _statusTimer?.cancel();
+    // _statusTimer?.cancel();
     super.dispose();
   }
 }

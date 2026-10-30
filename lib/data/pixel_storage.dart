@@ -1,135 +1,109 @@
 import 'package:flutter/material.dart';
+import 'package:mobile_app/model/display_target.dart';
+import 'package:mobile_app/utils/color_extensions.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
 class PixelStorage {
 
-  static late Directory path;
-
-  static void _createDirectoryIfNotExists(String path) async {
-    final dir = Directory(path);
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
-  }
-
-  static Future<void> _createDirStructure(Directory baseDir) async {
-    _createDirectoryIfNotExists('${baseDir.path}/front_display');
-    _createDirectoryIfNotExists('${baseDir.path}/back_display');
-    _createDirectoryIfNotExists('${baseDir.path}/led_strip');
-  }
+  static late Directory basePath;
 
   static Future<void> init() async {
     final dir = await getApplicationDocumentsDirectory();
-    path = Directory('${dir.path}/pixel_storage');
-    _createDirStructure(path);
-    debugPrint('[PixelStorage] Pixel storage path: ${path.path}');
-  }
+    basePath = Directory('${dir.path}/pixel_storage');
 
-  static List<int> _convertPixelDataToBytes(List<List<List<int>>> pixelData) {
-    List<int> buffer = [];
-    for (final y in pixelData) {
-      for (final x in y) {
-        buffer.addAll(x);
+    for (final target in DisplayTarget.values) {
+      final subDir = Directory('${basePath.path}/${target.folderName}');
+      if (!await subDir.exists()) {
+        await subDir.create(recursive: true);
       }
     }
-    return buffer;
   }
 
-  static List<List<List<List<int>>>> _convertBytesToPixelData(List<int> bytes, int width, int height, int frames) {
-    List<List<List<List<int>>>> pixelData = List.generate(frames, (_) => List.generate(height, (_) => List.generate(width, (_) => [0, 0, 0])));
-    debugPrint(pixelData.toString());
-    int index = 0;
-    for (int f = 0; f < frames; f++) {
-      for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-          pixelData[f][y][x] = [bytes[index], bytes[index + 1], bytes[index + 2]];
-          index += 3;
-        }
+  static Future<void> savePixels(DisplayTarget target, String fileName, int width, int height, List<List<Color>> pixels) async {
+    final name = fileName.endsWith('.bin') ? fileName : '$fileName.bin';
+    final file = File('${basePath.path}/${target.folderName}/$name');
+
+    List<int> bytes = [width, height, pixels.length];
+    for (final frame in pixels) {
+      for (final color in frame) {
+        bytes.addAll([color.redInt, color.greenInt, color.blueInt]);
       }
     }
-    return pixelData;
-  }
-
-  static Future<void> saveLedStrip(String nameProfile, List<List<List<int>>> pixelData) async {
-    final file = File('${path.path}/led_strip/$nameProfile.bin');
-
-    // header: number of strips (x), number of pixels, number of animation frames (0 for static)
-    List<int> bytes = [pixelData.length, pixelData[0].length, 1];
-    bytes.addAll(_convertPixelDataToBytes(pixelData));
     await file.writeAsBytes(bytes);
+    debugPrint('Saved pixel data to ${file.path}');
   }
 
-  static Future<void> saveLedStripAnimation(String nameProfile, List<List<List<List<int>>>> pixelData) async {
-    final file = File('${path.path}/led_strip/$nameProfile.bin');
+  static Future<bool> fileExists(DisplayTarget target, String fileName) async {
+    final name = fileName.endsWith('.bin') ? fileName : '$fileName.bin';
+    final file = File('${basePath.path}/${target.folderName}/$name');
 
-    // header: number of strips (x), number of pixels, number of animation frames
-    List<int> bytes = [pixelData[0].length, pixelData[0][0].length, pixelData.length];
-    for (final frame in pixelData) {
-      bytes.addAll(_convertPixelDataToBytes(frame));
-    }
-    await file.writeAsBytes(bytes);
+    return await file.exists();
   }
 
-  static Future<void> saveDisplay(String nameProfile, List<List<List<int>>> pixelData) async {
-    final file = File('${path.path}/front_display/$nameProfile.bin');
+  static Future<Map<String, dynamic>> loadPixels(DisplayTarget target, String fileName) async {
+    final name = fileName.endsWith('.bin') ? fileName : '$fileName.bin';
+    final file = File('${basePath.path}/${target.folderName}/$name');
 
-    // header: x, y, animation frames (0 for static)
-    List<int> bytes = [pixelData[0].length, pixelData.length, 1];
-    bytes.addAll(_convertPixelDataToBytes(pixelData));
-    await file.writeAsBytes(bytes);
-  }
-
-  static Future<void> saveDisplayAnimation(String nameProfile, List<List<List<List<int>>>> pixelData) async {
-    final file = File('${path.path}/front_display/$nameProfile.bin');
-
-    // header: x, y, animation frames
-    List<int> bytes = [pixelData[0][0].length, pixelData[0].length, pixelData.length];
-    for (final frame in pixelData) {
-      bytes.addAll(_convertPixelDataToBytes(frame));
-    }
-    await file.writeAsBytes(bytes);
-  }
-
-  static Future<List<List<List<List<int>>>>?> readFile(String p) async {
-    final file = File("${path.path}/$p");
     if (!await file.exists()) {
-      debugPrint('[PixelStorage] File not found: ${file.path}');
-      return null;
+      throw Exception('File not found: ${file.path}');
     }
 
     final bytes = await file.readAsBytes();
-    if (bytes.isEmpty) {
-      debugPrint('[PixelStorage] File is empty: ${file.path}');
-      return null;
+    if (bytes.length < 3) {
+      throw Exception('Invalid pixel data in file: ${file.path}');
     }
 
-    final x = bytes[0];
-    final y = bytes[1];
-    final frames = bytes[2];
-    if (x > 0 && y > 0) {
-      return _convertBytesToPixelData(bytes.sublist(3), x, y, frames);
+    final int width = bytes[0];
+    final int height = bytes[1];
+    final int pagesCount = bytes[2];
+
+    List<List<Color>> pages = [];
+
+    for (int p=0; p < pagesCount; p++) {
+      List<Color> page = [];
+      for (int i = 0; i < width * height; i++) {
+        final int index = 3 + (p * width * height + i) * 3;
+        if (index + 2 >= bytes.length) {
+          throw Exception('Unexpected end of pixel data in file: ${file.path}');
+        }
+        final color = Color.fromARGB(255, bytes[index], bytes[index + 1], bytes[index + 2]);
+        page.add(color);
+      }
+      pages.add(page);
     }
 
-    return null;
+    return {
+      'width': width,
+      'height': height,
+      'pages': pages
+    };
   }
 
-  static List<String> getLedStripProfiles() {
-    final dir = Directory('${path.path}/led_strip');
-    final files = dir.listSync().whereType<File>().where((file) => file.path.endsWith('.bin'));
-    return files.map((file) => file.path.split('/').last.replaceAll('.bin', '')).toList();
+  static Future<void> deleteFile(DisplayTarget target, String fileName) async {
+    final name = fileName.endsWith('.bin') ? fileName : '$fileName.bin';
+    final file = File('${basePath.path}/${target.folderName}/$name');
+
+    if (await file.exists()) {
+      await file.delete();
+      debugPrint('Deleted pixel data file: ${file.path}');
+    } else {
+      throw Exception('File not found: ${file.path}');
+    }
   }
 
-  static List<String> getFrontDisplayProfiles() {
-    final dir = Directory('${path.path}/front_display');
-    final files = dir.listSync().whereType<File>().where((file) => file.path.endsWith('.bin'));
-    return files.map((file) => file.path.split('/').last.replaceAll('.bin', '')).toList();
-  }
+ static Future<List<String>> listFiles(DisplayTarget target) async {
+    final dir = Directory('${basePath.path}/${target.folderName}');
 
-  static List<String> getBackDisplayProfiles() {
-    final dir = Directory('${path.path}/back_display');
-    final files = dir.listSync().whereType<File>().where((file) => file.path.endsWith('.bin'));
-    return files.map((file) => file.path.split('/').last.replaceAll('.bin', '')).toList();
+    if (!dir.existsSync()) {
+      return [];
+    }
+
+    return dir.listSync()
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.bin'))
+        .map((file) => file.uri.pathSegments.last.replaceAll('.bin', ''))
+        .toList();
   }
 
 }

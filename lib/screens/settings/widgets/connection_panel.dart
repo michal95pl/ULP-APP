@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:mobile_app/communication/device_communication.dart';
-import 'package:mobile_app/communication/device_error.dart';
+import 'package:mobile_app/communication/devices/device_communication.dart';
+import 'package:mobile_app/communication/model/device_error.dart';
 import 'package:mobile_app/screens/settings/widgets/address_input_field.dart';
 import 'package:mobile_app/screens/settings/widgets/connection_button.dart';
 import 'package:mobile_app/screens/settings/widgets/device_info_field.dart';
@@ -13,9 +13,11 @@ import 'package:mobile_app/data/settings_file.dart';
 class ConnectionPanel extends StatefulWidget {
   final DeviceCommunication device;
   final int deviceIndexAddress;
+  final String name;
 
   const ConnectionPanel({
     super.key,
+    required this.name,
     required this.device,
     required this.deviceIndexAddress
   });
@@ -90,8 +92,8 @@ class _ConnectionPanelState extends State<ConnectionPanel> {
             crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                "Stage Device", 
+              Text(
+                widget.name,
                 style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)
               ),
               const SizedBox(height: 16),

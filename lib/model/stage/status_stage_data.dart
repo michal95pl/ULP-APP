@@ -2,13 +2,13 @@ import 'dart:convert';
 import 'dart:ui';
 
 import 'package:mobile_app/model/stage/stage_strip_data.dart';
-import 'package:mobile_app/screens/stage/models/addresable_strip_effects.dart';
-import 'package:mobile_app/screens/stage/models/analog_strip_effects.dart';
+import 'package:mobile_app/model/stage/effects/stage_addresable_strip_effects.dart';
+import 'package:mobile_app/model/stage/effects/stage_analog_strip_effects.dart';
 
 class StatusStageData {
   
-  final List<StageStripData<AddresableStripEffects>> addresableStrips;
-  final List<StageStripData<AnalogStripEffects>> analogStrips;
+  final List<StageStripData<StageAddresableStripEffects>> addresableStrips;
+  final List<StageStripData<StageAnalogStripEffects>> analogStrips;
 
   StatusStageData({
     required this.addresableStrips,
@@ -19,14 +19,14 @@ class StatusStageData {
   static StatusStageData getStatusData(String data) {
     final Map<String, dynamic> statusData = jsonDecode(data)['stripStatus'];
 
-    List<StageStripData<AddresableStripEffects>> parsedAddressable = [];
-    List<StageStripData<AnalogStripEffects>> parsedAnalog = [];
+    List<StageStripData<StageAddresableStripEffects>> parsedAddressable = [];
+    List<StageStripData<StageAnalogStripEffects>> parsedAnalog = [];
 
     for (var item in statusData['addresableStrips']) {
       parsedAddressable.add(
-        StageStripData<AddresableStripEffects>(
+        StageStripData<StageAddresableStripEffects>(
           brightness: item['brightness'].toInt(),
-          effect: AddresableStripEffects.values[item['effect'].toInt()],
+          effect: StageAddresableStripEffects.values[item['effect'].toInt()],
           senitivity: item['senitivity'].toInt(),
           treshold: item['treshold'].toInt(),
           smoothness: item['smoothness'].toInt(),
@@ -49,9 +49,9 @@ class StatusStageData {
 
     for (var item in statusData['analogStrips']) {
       parsedAnalog.add(
-        StageStripData<AnalogStripEffects>(
+        StageStripData<StageAnalogStripEffects>(
           brightness: item['brightness'].toInt(),
-          effect: AnalogStripEffects.values[item['effect'].toInt()],
+          effect: StageAnalogStripEffects.values[item['effect'].toInt()],
           senitivity: item['senitivity'].toInt(),
           treshold: item['treshold'].toInt(),
           smoothness: item['smoothness'].toInt(),

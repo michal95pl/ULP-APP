@@ -7,12 +7,14 @@ class AppColors {
   static const Color backgroundColor = Color.fromARGB(255, 40, 53, 87);
   static const Color cardBackgroundColor = Color.fromARGB(255, 28, 28, 28);
 
-  static const Color snackbarBackgroundColor = Color(0xFF2A1518);
+  static const Color errorSnackbarBackgroundColor = Color(0xFF2A1518);
   static const Color redSnackbarColor = Colors.redAccent;
+  static const Color successSnackbarBackgroundColor = Color(0xFF1B2A1D);
   static const Color greenSnackbarColor = Colors.greenAccent;
 
   static const Color navBarActiveColor = Colors.cyanAccent;
   static const Color navBarInactiveColor = Color.fromARGB(255, 120, 135, 165);
 
   static const Color buttonColor = Colors.cyan;
+  static Color sendButtonColor = Colors.blueAccent.shade100;
 }

@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:mobile_app/communication/device_error.dart';
-import 'package:mobile_app/communication/host_type.dart';
+import 'package:mobile_app/communication/model/device_error.dart';
+import 'package:mobile_app/communication/model/host_type.dart';
 
 class SocketConnection {
 
@@ -59,6 +59,7 @@ class SocketConnection {
         Uint8List currentBytes = bytesBuffer.toBytes();
         int separatorIndex;
         
+        //TODO: esp should send length of data in the preambula, so we can read the exact number of bytes and avoid separator issues.
         while ((separatorIndex = currentBytes.indexOf(etxSeparator)) != -1) {
           Uint8List packetBytes = currentBytes.sublist(0, separatorIndex);
           Uint8List remainingBytes = currentBytes.sublist(separatorIndex + 1);
@@ -147,7 +148,9 @@ class SocketConnection {
     return _ackCompleter != null;
   }
 
-  // Send command to the server. Return true if command was received by the server.
+  /// Send command to the server. Return true if command was received by the server.
+  /// This method not guarantee that the command wiil be sent. It sends only if the socket is ready to receive.
+  /// data should be a list of bytes (8bit integers)!
   Future<bool> sendCommand(String typeCommand, [List<int>? data]) async {
     if (_socket == null || isWaitingForAck()) {
       return false;
@@ -184,10 +187,14 @@ class SocketConnection {
     } 
   }
 
+  /// Send command to the server. Return true if command was received by the server.
+  /// This method guarantees that the command will be sent, even if the device is not ready to receive.
+  /// It will wait for the socket to be ready and for any previous commands to be acknowledged before sending the new command.
+  /// data should be a list of bytes (8bit integers)!
   Future<bool> sendGuaranteedCommand(String typeCommand, [List<int>? data]) {
     final completer = Completer<bool>();
 
-    _commandQueue = _commandQueue.then((_) async {
+    _commandQueue = _commandQueue.catchError((_) {}).then((_) async {
       if (_socket == null) {
         completer.complete(false);
         return;

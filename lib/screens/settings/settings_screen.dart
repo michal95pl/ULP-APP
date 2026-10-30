@@ -35,8 +35,18 @@ class SettingsScreenState extends State<SettingsScreen>
               SizedBox(
                 width: 280,
                 child: ConnectionPanel(
+                  name: "Stage Device",
                   device: DeviceManager.instance.stage,
                   deviceIndexAddress: 1,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: 280,
+                child: ConnectionPanel(
+                  name: "Mobile Device",
+                  device: DeviceManager.instance.mobile,
+                  deviceIndexAddress: 0,
                 ),
               ),
             ],
