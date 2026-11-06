@@ -6,6 +6,8 @@ import 'package:mobile_app/model/stage/status_stage_data.dart';
 
 class StageCommunication 
   extends DeviceCommunication<StatusStageData> {
+  StageCommunication(super.connection);
+
     
   @override
    StatusStageData parseData(String rawData) {

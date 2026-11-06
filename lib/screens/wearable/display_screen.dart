@@ -3,7 +3,7 @@ import 'package:mobile_app/communication/device_connection_guards.dart';
 import 'package:mobile_app/communication/device_manager.dart';
 import 'package:mobile_app/communication/devices_listener.dart';
 import 'package:mobile_app/model/mobile/data/display_mobile_data.dart';
-import 'package:mobile_app/model/mobile/status_mobile_data.dart';
+import 'package:mobile_app/model/mobile/data/status_mobile_data.dart';
 import 'package:mobile_app/model/mobile/effects/mobile_display_effects.dart';
 import 'package:mobile_app/screens/wearable/widgets/led_matrix/led_matrix_card.dart';
 import 'package:mobile_app/screens/wearable/widgets/led_matrix/led_matrix_control_card.dart';
@@ -60,11 +60,11 @@ class DisplayScreenState extends State<DisplayScreen>
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: StatisticsAppBar(
-        isMobileConnected: DeviceManager.instance.mobile.isConnected(),
-        isStageConnected: DeviceManager.instance.stage.isConnected(),
+        isMobileConnected: DeviceManager.instance.mobile.isConnected,
+        isStageConnected: DeviceManager.instance.stage.isConnected,
         isSynchEnabled: false
       ),
-      bottomNavigationBar: BottomNav(currentRoute: AppRoutes.wearableDisplay, isMobileConnected: DeviceManager.instance.mobile.isConnected(), isStageConnected: DeviceManager.instance.stage.isConnected()),
+      bottomNavigationBar: BottomNav(currentRoute: AppRoutes.wearableDisplay, isMobileConnected: DeviceManager.instance.mobile.isConnected, isStageConnected: DeviceManager.instance.stage.isConnected),
       backgroundColor: const Color.fromARGB(255, 40, 53, 87),
       body: Center (
         child: ConstrainedBox(

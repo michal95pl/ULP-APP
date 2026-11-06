@@ -3,43 +3,48 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:mobile_app/communication/model/device_error.dart';
-import 'package:mobile_app/communication/model/host_type.dart';
+import 'package:mobile_app/communication/model/receive_command_type.dart';
+import 'package:mobile_app/communication/transport/socket_channel.dart';
+import 'package:mobile_app/communication/model/connection_error.dart';
 
-class SocketConnection {
+class SocketConnection implements SocketChannel {
 
-  String? hostName;
-  HostType hostType = HostType.unknown;
   var _connectionStatus = false;
   Socket? _socket;
   StreamSubscription<List<int>>? _socketSubscription;
-  
+
   Future<void> _commandQueue = Future.value();
 
-  static const int connectionTimeout = 2;
+  static const int _connectionTimeout = 2;
 
-  // wait for ack from the server. ESP32 will send ack after receiving command. 
+  // wait for ack from the server. ESP32 will send ack after receiving command.
   // It us used to synchronize with microcontrollers
   Completer<void>? _ackCompleter;
 
-  // void because we don't need to send any data, just notify listeners that host info has changed
-  final StreamController<void> _connectionHostInfoController = StreamController<void>.broadcast();
   final StreamController<bool> _connectionStatusController = StreamController<bool>.broadcast();
-  final StreamController<String> _statusDataController = StreamController<String>.broadcast();
-  final StreamController<DeviceError> _errorController = StreamController<DeviceError>.broadcast();
+  final StreamController<String> _receivedDataController = StreamController<String>.broadcast();
+  final StreamController<ConnectionError> _errorController = StreamController<ConnectionError>.broadcast();
 
+  @override
   Stream<bool> get statusStream => _connectionStatusController.stream;
-  Stream<String> get rawDataStream => _statusDataController.stream;
-  Stream<void> get connectionHostInfoStream => _connectionHostInfoController.stream;
-  Stream<DeviceError> get errorStream => _errorController.stream;
+  @override
+  Stream<String> get receivedDataStream => _receivedDataController.stream;
+  @override
+  Stream<ConnectionError> get errorStream => _errorController.stream;
+
+  @override
+  get isConnected => _connectionStatus;
+
+  SocketConnection();
 
   // Throws SocketException and TimeoutException
-  Future<void> connect(String host, int port) async {
+  @override
+  Future<void> connect([String? host, int? port]) async {
     await closeConnection();
 
     final Socket socket;
     try {
-      socket = await Socket.connect(host, port).timeout(const Duration(seconds: connectionTimeout));
+      socket = await Socket.connect(host!, port!).timeout(const Duration(seconds: _connectionTimeout));
       _socket = socket;
     } catch (e) {
       debugPrint("[SocketConnection] Error connecting to $host:$port - $e");
@@ -69,47 +74,22 @@ class SocketConnection {
 
           String command = utf8.decode(packetBytes, allowMalformed: true);
 
-          // ST - status command, W - write type command
-          if (command.startsWith("WST"))
-          {
-            // remove command type
-            var jsonData = command.substring(3).trim();
-            _statusDataController.add(jsonData);
-            debugPrint("[SocketConnection] Received status data: $jsonData");
-          }
           // WAC - ack command
-          else if (command.startsWith("WAC"))
-          {
+          if (command.startsWith(ReceiveCommandType.writeAcknowledge.code)) {
             if (_ackCompleter != null && !_ackCompleter!.isCompleted) {
               _ackCompleter!.complete();
             }
             debugPrint("[SocketConnection] Received ack");
           }
-          else if (command.startsWith("WHO"))
-          {
-            try {
-              var jsonData = command.substring(3).trim();
-              final Map<String, dynamic> data = jsonDecode(jsonData) as Map<String, dynamic>;
-
-              hostName = data['hostName'] as String? ?? 'Unknown Host';
-              hostType = HostType.fromString(data['hostType'] as String?);
-
-              _connectionHostInfoController.add(null);
-              debugPrint("[SocketConnection] Received WHO command: $command");
-            } catch (e) {
-              debugPrint("[SocketConnection] Error parsing WHO command: $e");
-              _errorController.add(DeviceError.fromParsing(e));
-            }
-          }
           else {
-            debugPrint("[SocketConnection] Unknown command received: $command");
-            _errorController.add(DeviceError(DeviceErrorType.parsingError, 'Unknown command received'));
+            debugPrint("[SocketConnection] Received data: $command");
+            _receivedDataController.add(command);
           }
-        } 
+        }
       },
       onError: (error) async {
         debugPrint("[SocketConnection] Error $error");
-        _errorController.add(DeviceError.fromSocket(error));
+        _errorController.add(ConnectionError.fromSocket(error));
         await closeConnection();
       },
       onDone: () async {
@@ -119,6 +99,7 @@ class SocketConnection {
     );
   }
 
+  @override
   Future<void> closeConnection() async {
     _commandQueue = Future.value();
     if (_socketSubscription != null) {
@@ -138,7 +119,8 @@ class SocketConnection {
         _connectionStatusController.add(_connectionStatus);
 
         if (_ackCompleter != null && !_ackCompleter!.isCompleted) {
-          _ackCompleter!.completeError(Exception("Connection closed before receiving ack"));
+          _ackCompleter!.complete();
+          _ackCompleter = null;
         }
       }
     }
@@ -151,8 +133,9 @@ class SocketConnection {
   /// Send command to the server. Return true if command was received by the server.
   /// This method not guarantee that the command wiil be sent. It sends only if the socket is ready to receive.
   /// data should be a list of bytes (8bit integers)!
+  @override
   Future<bool> sendCommand(String typeCommand, [List<int>? data]) async {
-    if (_socket == null || isWaitingForAck()) {
+    if (!_connectionStatus || _socket == null || isWaitingForAck()) {
       return false;
     }
 
@@ -180,7 +163,7 @@ class SocketConnection {
     } catch (e) {
       await closeConnection();
       debugPrint("[SocketConnection] Error: $e");
-      _errorController.add(DeviceError.fromSocket(e));
+      _errorController.add(ConnectionError.fromSocket(e));
       return false;
     } finally {
       _ackCompleter = null;
@@ -191,7 +174,12 @@ class SocketConnection {
   /// This method guarantees that the command will be sent, even if the device is not ready to receive.
   /// It will wait for the socket to be ready and for any previous commands to be acknowledged before sending the new command.
   /// data should be a list of bytes (8bit integers)!
+  @override
   Future<bool> sendGuaranteedCommand(String typeCommand, [List<int>? data]) {
+    if (_connectionStatus == false || _socket == null) {
+      return Future.value(false);
+    }
+
     final completer = Completer<bool>();
 
     _commandQueue = _commandQueue.catchError((_) {}).then((_) async {
@@ -218,13 +206,5 @@ class SocketConnection {
     });
 
     return completer.future;
-  }
-
-  bool isConnected() {
-    return _connectionStatus;
-  }
-
-  void emitError(DeviceError error) {
-    _errorController.add(error);
   }
 }

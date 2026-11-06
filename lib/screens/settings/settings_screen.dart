@@ -17,15 +17,31 @@ class SettingsScreen extends StatefulWidget {
 class SettingsScreenState extends State<SettingsScreen>
   with DevicesListener {
 
+  ConnectionPanelRole _getRoleForMobileDevice() {
+    final mode = DeviceManager.instance.mode;
+    
+    if (mode == ConnectionMode.tunnelThroughMobile) return ConnectionPanelRole.tunnelHost;
+    if (mode == ConnectionMode.tunnelThroughStage) return ConnectionPanelRole.tunneled;
+    return ConnectionPanelRole.direct;
+  }
+
+  ConnectionPanelRole _getRoleForStageDevice() {
+    final mode = DeviceManager.instance.mode;
+    
+    if (mode == ConnectionMode.tunnelThroughStage) return ConnectionPanelRole.tunnelHost;
+    if (mode == ConnectionMode.tunnelThroughMobile) return ConnectionPanelRole.tunneled;
+    return ConnectionPanelRole.direct;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: StatisticsAppBar(
-        isMobileConnected: DeviceManager.instance.mobile.isConnected(), 
-        isStageConnected: DeviceManager.instance.stage.isConnected(), 
+        isMobileConnected: DeviceManager.instance.mobile.isConnected, 
+        isStageConnected: DeviceManager.instance.stage.isConnected, 
         isSynchEnabled: false
       ),
-      bottomNavigationBar: BottomNav(currentRoute: AppRoutes.settings, isMobileConnected: DeviceManager.instance.mobile.isConnected(), isStageConnected: DeviceManager.instance.stage.isConnected()),
+      bottomNavigationBar: BottomNav(currentRoute: AppRoutes.settings, isMobileConnected: DeviceManager.instance.mobile.isConnected, isStageConnected: DeviceManager.instance.stage.isConnected),
       backgroundColor: AppColors.backgroundColor,
       body: Center(
         child: SingleChildScrollView(
@@ -37,7 +53,16 @@ class SettingsScreenState extends State<SettingsScreen>
                 child: ConnectionPanel(
                   name: "Stage Device",
                   device: DeviceManager.instance.stage,
-                  deviceIndexAddress: 1,
+                  fileIndexAddress: 1,
+                  role: _getRoleForStageDevice(),
+                  onTunnelToggled: () async {
+                    final newMode = DeviceManager.instance.mode == ConnectionMode.tunnelThroughStage 
+                        ? ConnectionMode.direct 
+                        : ConnectionMode.tunnelThroughStage;
+                        
+                    await DeviceManager.instance.setConnectionMode(newMode);
+                    setState(() {});
+                  }
                 ),
               ),
               const SizedBox(height: 32),
@@ -46,7 +71,16 @@ class SettingsScreenState extends State<SettingsScreen>
                 child: ConnectionPanel(
                   name: "Mobile Device",
                   device: DeviceManager.instance.mobile,
-                  deviceIndexAddress: 0,
+                  fileIndexAddress: 0,
+                  role: _getRoleForMobileDevice(),
+                  onTunnelToggled: () async {
+                   final newMode = DeviceManager.instance.mode == ConnectionMode.tunnelThroughMobile 
+                        ? ConnectionMode.direct 
+                        : ConnectionMode.tunnelThroughMobile;
+                        
+                    await DeviceManager.instance.setConnectionMode(newMode);
+                    setState(() {});
+                  }
                 ),
               ),
             ],

@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:mobile_app/communication/model/device_error.dart';
+import 'package:mobile_app/communication/model/connection_error.dart';
 import 'package:mobile_app/communication/device_manager.dart';
-import 'package:mobile_app/model/mobile/status_mobile_data.dart';
+import 'package:mobile_app/model/mobile/data/status_mobile_data.dart';
 import 'package:mobile_app/model/stage/status_stage_data.dart';
-import 'package:async/async.dart';
 import 'package:mobile_app/screens/settings/settings_screen.dart';
 import 'package:mobile_app/utils/app_snack_bar.dart';
 
@@ -26,26 +25,21 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
 
     _subscriptions.addAll([
       mobileComm.statusStream.listen((connected) => onMobileConnectionChanged(connected)),
-      mobileComm.dataStream.listen((data) => onMobileDataReceived(data)),
+      mobileComm.statusDataStream.listen((data) => onMobileDataReceived(data)),
       mobileComm.errorStream.listen((error) => onMobileErrorReceived(error)),
       
       stageComm.statusStream.listen((connected) => onStageConnectionChanged(connected)),
-      stageComm.dataStream.listen((data) => onStageDataReceived(data)),
+      stageComm.statusDataStream.listen((data) => onStageDataReceived(data)),
       stageComm.errorStream.listen((error) => onStageErrorReceived(error)),
-
-      StreamGroup.merge([
-        mobileComm.connectionHostInfoStream,
-        stageComm.connectionHostInfoStream
-      ]).listen((_) => onConnectionsHostInfoChanged())
     ]);
 
     // gets the latest status from devices depending on the screen is being shown.
     if (fetchMobileStatus) {
-      mobileComm.sendStatusCommand();
+      mobileComm.sendRequestStatus();
     }
     
     if (fetchStageStatus) {
-      stageComm.sendStatusCommand();
+      stageComm.sendRequestStatus();
     }
 
     // _statusTimer = Timer.periodic(const Duration(seconds: 5), (_) {
@@ -63,10 +57,10 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
   }
 
   @mustCallSuper
-  void onMobileErrorReceived(DeviceError error) {
+  void onMobileErrorReceived(ConnectionError error) {
     final isCurrentScreen = ModalRoute.of(context)?.isCurrent ?? false;
     if (isCurrentScreen) {
-      if ((error.type != DeviceErrorType.invalidHostType && widget is SettingsScreen) || widget is! SettingsScreen) {
+      if (widget is! SettingsScreen || error.type != ConnectionErrorType.invalidHostType) {
         _showErrorSnackBar("Mobile", error);
       }
     }
@@ -81,19 +75,16 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
   }
 
   @mustCallSuper
-  void onStageErrorReceived(DeviceError error) {
+  void onStageErrorReceived(ConnectionError error) {
     final isCurrentScreen = ModalRoute.of(context)?.isCurrent ?? false;
     if (isCurrentScreen) {
-      if ((error.type != DeviceErrorType.invalidHostType && widget is SettingsScreen) || widget is! SettingsScreen) {
+      if (widget is! SettingsScreen || error.type != ConnectionErrorType.invalidHostType) {
         _showErrorSnackBar("Stage", error);
       }
     }
   }
 
-  @mustCallSuper
-  void onConnectionsHostInfoChanged() {}
-
-  void _showErrorSnackBar(String deviceName, DeviceError error) {
+  void _showErrorSnackBar(String deviceName, ConnectionError error) {
     if (!mounted) return;
 
     AppSnackBar.showError(context, title: deviceName, message: error.message);

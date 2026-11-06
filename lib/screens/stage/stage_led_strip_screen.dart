@@ -43,11 +43,11 @@ with DevicesListener, RequiresStageConnection {
 
     return Scaffold(
       appBar: StatisticsAppBar(
-        isMobileConnected: DeviceManager.instance.mobile.isConnected(), 
-        isStageConnected: DeviceManager.instance.stage.isConnected(), 
+        isMobileConnected: DeviceManager.instance.mobile.isConnected, 
+        isStageConnected: DeviceManager.instance.stage.isConnected, 
         isSynchEnabled: false
       ),
-      bottomNavigationBar: BottomNav(currentRoute: AppRoutes.stageLed, isMobileConnected: DeviceManager.instance.mobile.isConnected(), isStageConnected: DeviceManager.instance.stage.isConnected()),
+      bottomNavigationBar: BottomNav(currentRoute: AppRoutes.stageLed, isMobileConnected: DeviceManager.instance.mobile.isConnected, isStageConnected: DeviceManager.instance.stage.isConnected),
       backgroundColor: const Color.fromARGB(255, 40, 53, 87),
       body: Center(
         child: LedMixerPanel(

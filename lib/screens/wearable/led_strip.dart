@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/communication/device_manager.dart';
 import 'package:mobile_app/communication/devices_listener.dart';
+import 'package:mobile_app/model/mobile/data/status_mobile_data.dart';
 import 'package:mobile_app/widgets/bottom_nav.dart';
 import 'package:mobile_app/widgets/effect_dropdown_button.dart';
 import 'package:mobile_app/widgets/statistics_app_bar.dart';
-import 'package:mobile_app/model/mobile/status_mobile_data.dart';
 import 'package:mobile_app/widgets/text_slider.dart';
 
 class LedStripScreen extends StatefulWidget {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/utils/app_colors.dart';
+import 'package:mobile_app/widgets/labeled_icon_button.dart';
 
 class LedMatrixActionPanel extends StatelessWidget {
   final int currentPage;
@@ -40,26 +41,26 @@ class LedMatrixActionPanel extends StatelessWidget {
             color: Colors.white70,
           ),
           const SizedBox(width: 5),
-          _buildActionButton(
+          LabeledIconButton(
             icon: Icons.folder_open_outlined,
             label: 'Load',
             onTap: onLoadPattern,
           ),
           const SizedBox(width: 5),
-          _buildActionButton(
+          LabeledIconButton(
             icon: Icons.save_outlined,
             label: 'Save',
             onTap: onSavePattern,
           ),
           const SizedBox(width: 5),
-          _buildActionButton(
+          LabeledIconButton(
             icon: Icons.cleaning_services_rounded,
             label: 'Clear',
             color: Colors.redAccent.shade100,
             onTap: onClear,
           ),
           const SizedBox(width: 5),
-          _buildActionButton(
+          LabeledIconButton(
             icon: Icons.send_rounded,
             label: 'Send',
             color: AppColors.sendButtonColor,
@@ -100,36 +101,6 @@ class LedMatrixActionPanel extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: TextStyle(
-                color: color,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color color = Colors.white70,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: 28),
             const SizedBox(height: 3),
             Text(
               label,

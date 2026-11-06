@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 
 class DeviceInfoField extends StatelessWidget {
 
-  final String address;
+  final String? address;
   final String hostname;
   final String deviceName;
 
   const DeviceInfoField({
     super.key,
-    required this.address,
+    this.address,
     required this.hostname,
     required this.deviceName
   });
@@ -42,11 +42,13 @@ class DeviceInfoField extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            "IP: $address",
-            style: const TextStyle(color: Colors.white70, fontSize: 13),
-          ),
-          const SizedBox(height: 2),
+          if (address != null)
+            Text(
+              "IP: $address",
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
+            ),
+          if (address != null)
+            const SizedBox(height: 2),
           Text(
             "Device: $deviceName",
             style: const TextStyle(color: Colors.white70, fontSize: 13),
