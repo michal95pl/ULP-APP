@@ -9,6 +9,7 @@ enum ReceiveCommandType {
   writeStatus('WST'),
   writeHostInfo('WHO'),
   writeDisplayFrame('WDF'),
+  writeSynchStatus('WSS'),
 
   tunnelWriteConnectionStatus('TCS'),
   tunnelWriteConnectionError('TCE');

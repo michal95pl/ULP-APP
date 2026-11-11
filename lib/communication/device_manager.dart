@@ -39,48 +39,70 @@ class DeviceManager {
   ConnectionMode _mode = ConnectionMode.direct;
   ConnectionMode get mode => _mode;
 
-Future<void> setConnectionMode(ConnectionMode newMode) async {
-  if (_mode == newMode) return;
+  bool get isSynchActive {
+    final isMobileConnected = mobile.isConnected;
+    final isStageConnected = stage.isConnected;
 
-  final previousMode = _mode;
-  _mode = newMode;
-
-    switch (newMode) {
-      case ConnectionMode.direct:
-        if (previousMode == ConnectionMode.tunnelThroughStage) {
-          await mobile.disconnect();
-          mobile.setNewChannel(_mobileSocket);
-        } else if (previousMode == ConnectionMode.tunnelThroughMobile) {
-          await stage.disconnect();
-          stage.setNewChannel(_stageSocket);
-        }
-        break;
-
-      case ConnectionMode.tunnelThroughStage:
-        if (previousMode == ConnectionMode.direct) {
-          await mobile.disconnect();
-          mobile.setNewChannel(_tunnelViaStage);
-        } else if (previousMode == ConnectionMode.tunnelThroughMobile) {
-          await stage.disconnect();
-          await mobile.disconnect();
-          
-          stage.setNewChannel(_stageSocket);
-          mobile.setNewChannel(_tunnelViaStage);
-        }
-        break;
-
-      case ConnectionMode.tunnelThroughMobile:
-        if (previousMode == ConnectionMode.direct) {
-          await stage.disconnect();
-          stage.setNewChannel(_tunnelViaMobile);
-        } else if (previousMode == ConnectionMode.tunnelThroughStage) {
-          await mobile.disconnect();
-          await stage.disconnect();
-          
-          mobile.setNewChannel(_mobileSocket);
-          stage.setNewChannel(_tunnelViaMobile);
-        }
-        break;
+    if (!isMobileConnected && !isStageConnected) {
+      return false;
     }
+
+    final mobileSynch = lastMobileStatus?.synchEnabled ?? false;
+    final stageSynch = lastStageStatus?.synchEnabled ?? false;
+
+    if (isMobileConnected && isStageConnected) {
+      return mobileSynch && stageSynch;
+    }
+
+    if (isStageConnected) {
+      return stageSynch;
+    }
+
+    return mobileSynch;
   }
+
+  Future<void> setConnectionMode(ConnectionMode newMode) async {
+    if (_mode == newMode) return;
+
+    final previousMode = _mode;
+    _mode = newMode;
+
+      switch (newMode) {
+        case ConnectionMode.direct:
+          if (previousMode == ConnectionMode.tunnelThroughStage) {
+            await mobile.disconnect();
+            mobile.setNewChannel(_mobileSocket);
+          } else if (previousMode == ConnectionMode.tunnelThroughMobile) {
+            await stage.disconnect();
+            stage.setNewChannel(_stageSocket);
+          }
+          break;
+
+        case ConnectionMode.tunnelThroughStage:
+          if (previousMode == ConnectionMode.direct) {
+            await mobile.disconnect();
+            mobile.setNewChannel(_tunnelViaStage);
+          } else if (previousMode == ConnectionMode.tunnelThroughMobile) {
+            await stage.disconnect();
+            await mobile.disconnect();
+            
+            stage.setNewChannel(_stageSocket);
+            mobile.setNewChannel(_tunnelViaStage);
+          }
+          break;
+
+        case ConnectionMode.tunnelThroughMobile:
+          if (previousMode == ConnectionMode.direct) {
+            await stage.disconnect();
+            stage.setNewChannel(_tunnelViaMobile);
+          } else if (previousMode == ConnectionMode.tunnelThroughStage) {
+            await mobile.disconnect();
+            await stage.disconnect();
+            
+            mobile.setNewChannel(_mobileSocket);
+            stage.setNewChannel(_tunnelViaMobile);
+          }
+          break;
+      }
+    }
 }

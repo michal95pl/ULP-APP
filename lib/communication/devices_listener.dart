@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:mobile_app/communication/model/connection_error.dart';
@@ -6,6 +7,7 @@ import 'package:mobile_app/communication/device_manager.dart';
 import 'package:mobile_app/model/mobile/data/status_mobile_data.dart';
 import 'package:mobile_app/model/stage/status_stage_data.dart';
 import 'package:mobile_app/screens/settings/settings_screen.dart';
+import 'package:mobile_app/screens/wearable/widgets/led_matrix/led_matrix_manager.dart';
 import 'package:mobile_app/utils/app_snack_bar.dart';
 
 /// Implements basic functionality to handle device connection changes, data received and errors received.
@@ -27,10 +29,13 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
       mobileComm.statusStream.listen((connected) => onMobileConnectionChanged(connected)),
       mobileComm.statusDataStream.listen((data) => onMobileDataReceived(data)),
       mobileComm.errorStream.listen((error) => onMobileErrorReceived(error)),
+      mobileComm.receivedSynchStatusStream.listen((state) => onMobileSynchStateChanged(state)),
+      mobileComm.receivedBackDisplayDataStream.listen((frame) => onMobileDisplayDataReceived(frame)),
       
       stageComm.statusStream.listen((connected) => onStageConnectionChanged(connected)),
       stageComm.statusDataStream.listen((data) => onStageDataReceived(data)),
       stageComm.errorStream.listen((error) => onStageErrorReceived(error)),
+      stageComm.receivedSynchStatusStream.listen((state) => onStageSynchStateChanged(state)),
     ]);
 
     // gets the latest status from devices depending on the screen is being shown.
@@ -46,6 +51,11 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
     //   mobileComm.sendStatusCommand();
     //   stageComm.sendStatusCommand();
     // });
+  }
+
+  @mustCallSuper
+  void onMobileDisplayDataReceived(Uint8List frame) {
+    LedMatrixManager.instance.backController.setAllFramesFromBytes(frame);
   }
 
   @mustCallSuper
@@ -67,6 +77,14 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
   }
   
   @mustCallSuper
+  void onMobileSynchStateChanged(bool state) {
+    if (DeviceManager.instance.lastMobileStatus != null) {
+      DeviceManager.instance.lastMobileStatus!.synchEnabled = state;
+    }
+  }
+
+
+  @mustCallSuper
   void onStageConnectionChanged(bool isConnected) {}
 
   @mustCallSuper
@@ -81,6 +99,13 @@ mixin DevicesListener<T extends StatefulWidget> on State<T> {
       if (widget is! SettingsScreen || error.type != ConnectionErrorType.invalidHostType) {
         _showErrorSnackBar("Stage", error);
       }
+    }
+  }
+
+  @mustCallSuper
+  void onStageSynchStateChanged(bool state) {
+    if (DeviceManager.instance.lastStageStatus != null) {
+      DeviceManager.instance.lastStageStatus!.synchEnabled = state;
     }
   }
 

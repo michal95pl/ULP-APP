@@ -14,6 +14,7 @@ enum SendCommandType {
   writeEffect('WSE'),
   writeDisplayFrame('WDF'),
   writeDisplayText('WDT'),
+  writeSynch('WSY'),
 
   // Commands to handle the tunnel connection
   writeTunnelConnect('TTC'),

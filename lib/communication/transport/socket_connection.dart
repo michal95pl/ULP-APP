@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:mobile_app/communication/model/receive_command_type.dart';
+import 'package:mobile_app/communication/model/received_packet.dart';
 import 'package:mobile_app/communication/transport/socket_channel.dart';
 import 'package:mobile_app/communication/model/connection_error.dart';
 
@@ -16,19 +17,22 @@ class SocketConnection implements SocketChannel {
   Future<void> _commandQueue = Future.value();
 
   static const int _connectionTimeout = 2;
+  static const int _commandTypeLength = 3;
+  static const int _payloadSizeLength = 2;
+  static const int _preambleLength = _commandTypeLength + _payloadSizeLength;
 
   // wait for ack from the server. ESP32 will send ack after receiving command.
   // It us used to synchronize with microcontrollers
   Completer<void>? _ackCompleter;
 
   final StreamController<bool> _connectionStatusController = StreamController<bool>.broadcast();
-  final StreamController<String> _receivedDataController = StreamController<String>.broadcast();
+  final StreamController<ReceivedPacket> _receivedDataController = StreamController<ReceivedPacket>.broadcast();
   final StreamController<ConnectionError> _errorController = StreamController<ConnectionError>.broadcast();
 
   @override
   Stream<bool> get statusStream => _connectionStatusController.stream;
   @override
-  Stream<String> get receivedDataStream => _receivedDataController.stream;
+  Stream<ReceivedPacket> get receivedDataStream => _receivedDataController.stream;
   @override
   Stream<ConnectionError> get errorStream => _errorController.stream;
 
@@ -55,35 +59,41 @@ class SocketConnection implements SocketChannel {
     _connectionStatusController.add(_connectionStatus);
 
     final BytesBuilder bytesBuffer = BytesBuilder(copy: false);
-    const int etxSeparator = 0x03;
 
     // receive data
     _socketSubscription = _socket!.listen(
       (List<int> event) {
         bytesBuffer.add(event);
         Uint8List currentBytes = bytesBuffer.toBytes();
-        int separatorIndex;
-        
-        //TODO: esp should send length of data in the preambula, so we can read the exact number of bytes and avoid separator issues.
-        while ((separatorIndex = currentBytes.indexOf(etxSeparator)) != -1) {
-          Uint8List packetBytes = currentBytes.sublist(0, separatorIndex);
-          Uint8List remainingBytes = currentBytes.sublist(separatorIndex + 1);
+
+        while (currentBytes.length >= _preambleLength) {
+          final int payloadLength = (currentBytes[3] << 8) | currentBytes[4];
+          final int totalPacketLength = _preambleLength + payloadLength;
+
+          // waiting for all bytes
+          if (currentBytes.length < totalPacketLength) {
+            break;
+          }
+
+          final String commandType = ascii.decode(currentBytes.sublist(0, _commandTypeLength),  allowInvalid: true);
+          final Uint8List payload = currentBytes.sublist(_preambleLength, totalPacketLength);
+          final Uint8List remainingBytes = currentBytes.sublist(totalPacketLength);
+
           bytesBuffer.clear();
           bytesBuffer.add(remainingBytes);
           currentBytes = remainingBytes;
 
-          String command = utf8.decode(packetBytes, allowMalformed: true);
-
           // WAC - ack command
-          if (command.startsWith(ReceiveCommandType.writeAcknowledge.code)) {
+          if (commandType == ReceiveCommandType.writeAcknowledge.code) {
             if (_ackCompleter != null && !_ackCompleter!.isCompleted) {
               _ackCompleter!.complete();
             }
             debugPrint("[SocketConnection] Received ack");
           }
           else {
-            debugPrint("[SocketConnection] Received data: $command");
-            _receivedDataController.add(command);
+            _receivedDataController.add(
+              ReceivedPacket(commandType: commandType, payload: payload)
+            );
           }
         }
       },

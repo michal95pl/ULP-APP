@@ -9,15 +9,18 @@ class StatusStageData {
   
   final List<StageStripData<StageAddresableStripEffects>> addresableStrips;
   final List<StageStripData<StageAnalogStripEffects>> analogStrips;
+  bool synchEnabled;
 
   StatusStageData({
     required this.addresableStrips,
     required this.analogStrips,
+    required this.synchEnabled
   })  : assert(addresableStrips.length == 2, 'Addresable strips must have a length of 2'),
         assert(analogStrips.length == 2, 'Analog strips must have a length of 2'); 
 
   static StatusStageData getStatusData(String data) {
-    final Map<String, dynamic> statusData = jsonDecode(data)['stripStatus'];
+    final Map<String, dynamic> statusData = jsonDecode(data);
+    final synch = statusData['synch'] as bool;
 
     List<StageStripData<StageAddresableStripEffects>> parsedAddressable = [];
     List<StageStripData<StageAnalogStripEffects>> parsedAnalog = [];
@@ -75,6 +78,7 @@ class StatusStageData {
     return StatusStageData(
       addresableStrips: parsedAddressable,
       analogStrips: parsedAnalog,
+      synchEnabled: synch
     );
   }
 }

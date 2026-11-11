@@ -1,8 +1,9 @@
 import 'package:mobile_app/communication/model/connection_error.dart';
+import 'package:mobile_app/communication/model/received_packet.dart';
 
 abstract interface class SocketChannel {
   Stream<bool> get statusStream;
-  Stream<String> get receivedDataStream;
+  Stream<ReceivedPacket> get receivedDataStream;
   Stream<ConnectionError> get errorStream;
 
   bool get isConnected;

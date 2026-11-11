@@ -70,7 +70,7 @@ implements PreferredSizeWidget {
                 const SizedBox(width: 40),
                 _buildIconWithDescription(Icons.sensors, 'conn 2', isStageConnected),
                 const SizedBox(width: 40),
-                _buildIconWithDescription(Icons.lan, 'synch', isSynchEnabled),
+                _buildIconWithDescription(isSynchEnabled? Icons.sync : Icons.sync_disabled, 'synch', isSynchEnabled),
               ],
             ),
           ),

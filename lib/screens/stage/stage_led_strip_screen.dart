@@ -45,7 +45,7 @@ with DevicesListener, RequiresStageConnection {
       appBar: StatisticsAppBar(
         isMobileConnected: DeviceManager.instance.mobile.isConnected, 
         isStageConnected: DeviceManager.instance.stage.isConnected, 
-        isSynchEnabled: false
+        isSynchEnabled: DeviceManager.instance.isSynchActive
       ),
       bottomNavigationBar: BottomNav(currentRoute: AppRoutes.stageLed, isMobileConnected: DeviceManager.instance.mobile.isConnected, isStageConnected: DeviceManager.instance.stage.isConnected),
       backgroundColor: const Color.fromARGB(255, 40, 53, 87),
@@ -97,9 +97,21 @@ with DevicesListener, RequiresStageConnection {
   }
 
   @override
+  void onMobileSynchStateChanged(bool state) {
+    super.onMobileSynchStateChanged(state);
+    debugPrint("[StageLedStripScreenState] mobile synch state changed: $state");
+  }
+
+  @override
   void onStageDataReceived(StatusStageData data) {
     super.onStageDataReceived(data);
     setState(() {});
+  }
+
+  @override
+  void onStageSynchStateChanged(bool state) {
+    super.onStageSynchStateChanged(state);
+    debugPrint("[StageLedStripScreenState] stage synch state changed: $state");
   }
 
 }

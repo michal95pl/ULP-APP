@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:mobile_app/communication/device_manager.dart';
 import 'package:mobile_app/communication/devices/device_communication.dart';
+import 'package:mobile_app/communication/devices/synch_controllable_device.dart';
 import 'package:mobile_app/communication/model/connection_error.dart';
 import 'package:mobile_app/screens/settings/widgets/address_input_field.dart';
 import 'package:mobile_app/screens/settings/widgets/connection_button.dart';
@@ -45,9 +47,14 @@ class _ConnectionPanelState extends State<ConnectionPanel> {
 
   StreamSubscription? _deviceStatusSubscription;
   StreamSubscription? _deviceErrorSubscription;
+  StreamSubscription? _deviceSynchSubscription;
 
-  ConnectionStatus? _connectionButtonStatus;
+  ConnectionStatus? _connectionStatus;
   AddressInputError _addressError = AddressInputError.none;
+
+  bool _isSynchEnabled = false;
+  bool _isWaitingForSynch = false;
+  Timer? _synchTimeoutTimer;
 
   @override
   void initState() {
@@ -58,10 +65,25 @@ class _ConnectionPanelState extends State<ConnectionPanel> {
         widget.device.sendRequestStatus();
       }
       setState(() {
-        _connectionButtonStatus = status ? ConnectionStatus.connected : ConnectionStatus.disconnected;
+        _connectionStatus = status ? ConnectionStatus.connected : ConnectionStatus.disconnected;
+        if (!status) {
+          _synchTimeoutTimer?.cancel();
+          _isWaitingForSynch = false;
+        }
       });
     });
 
+    if (widget.device is SynchControllableDevice) {
+      _isSynchEnabled = DeviceManager.instance.isSynchActive;
+      _deviceSynchSubscription = widget.device.receivedSynchStatusStream.listen((state) {
+        _synchTimeoutTimer?.cancel();
+        setState(() {
+          _isSynchEnabled = state;
+          _isWaitingForSynch = false;
+        });
+      });
+    }
+    
     _deviceErrorSubscription = widget.device.errorStream.listen((error) {
       if (error.type == ConnectionErrorType.invalidHostType) {
         setState(() {
@@ -75,15 +97,26 @@ class _ConnectionPanelState extends State<ConnectionPanel> {
       _addressController.text = '${address['ip']}:${address['port']}';
     }
 
-    _connectionButtonStatus = widget.device.isConnected ? ConnectionStatus.connected : ConnectionStatus.disconnected;
+    _connectionStatus = widget.device.isConnected ? ConnectionStatus.connected : ConnectionStatus.disconnected;
+  }
+
+ @override
+  void dispose() {
+    _deviceStatusSubscription?.cancel();
+    _deviceErrorSubscription?.cancel();
+    _deviceSynchSubscription?.cancel();
+    _synchTimeoutTimer?.cancel();
+    _addressController.dispose();
+    super.dispose();
   }
 
   @override
-  void dispose() {
-    _deviceStatusSubscription?.cancel();
-    _addressController.dispose();
-    _deviceErrorSubscription?.cancel();
-    super.dispose();
+  void didUpdateWidget(ConnectionPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    if (widget.device is SynchControllableDevice) {
+      _isSynchEnabled = DeviceManager.instance.isSynchActive;
+    }
   }
 
   @override
@@ -122,9 +155,26 @@ class _ConnectionPanelState extends State<ConnectionPanel> {
 
               const SizedBox(height: 16),
               Row(children: [
-                const Expanded(child: SizedBox()),
+                  Expanded(
+                    child: widget.device is SynchControllableDevice
+                    ? Align(
+                      alignment: Alignment.centerLeft,
+                      child: widget.role != ConnectionPanelRole.tunneled ? 
+                      LabeledIconButton(
+                        isEnabled: _connectionStatus == ConnectionStatus.connected && !_isWaitingForSynch,
+                        color: Colors.white,
+                        icon: _isSynchEnabled? Icons.sync_disabled : Icons.sync,
+                        label: "Synch",
+                        onTap: () {
+                          _handleSynch(widget.device as SynchControllableDevice);
+                        },
+                      ) 
+                      : null,
+                    )
+                    : SizedBox(),
+                  ),
                 ConnectionButton(
-                  status: _connectionButtonStatus ?? ConnectionStatus.disconnected,
+                  status: _connectionStatus ?? ConnectionStatus.disconnected,
                   onConnectPressed: _handleConnect,
                   onDisconnectPressed: () async {await widget.device.disconnect();}
                 ),
@@ -169,7 +219,7 @@ Future<void> _handleConnect() async {
     }
 
     setState(() {
-      _connectionButtonStatus = ConnectionStatus.connecting;
+      _connectionStatus = ConnectionStatus.connecting;
       _addressError = AddressInputError.none;
     });
 
@@ -192,7 +242,7 @@ Future<void> _handleConnect() async {
         if (widget.role != ConnectionPanelRole.tunneled) {
           _addressError = AddressInputError.invalidAddress;
         }
-        _connectionButtonStatus = ConnectionStatus.disconnected;
+        _connectionStatus = ConnectionStatus.disconnected;
       });
       await widget.device.disconnect();
     } catch (e) {
@@ -201,8 +251,26 @@ Future<void> _handleConnect() async {
         if (widget.role != ConnectionPanelRole.tunneled) {
           _addressError = AddressInputError.invalidAddress;
         }
-        _connectionButtonStatus = ConnectionStatus.disconnected;
+        _connectionStatus = ConnectionStatus.disconnected;
       });
     }
+  }
+
+  void _handleSynch(SynchControllableDevice synchDevice) {
+    if (_isWaitingForSynch) return;
+
+    setState(() {
+      _isWaitingForSynch = true;
+    });
+
+    synchDevice.sendGuaranteedSynchRequest(!_isSynchEnabled);
+
+    _synchTimeoutTimer?.cancel();
+    _synchTimeoutTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      setState(() {
+        _isWaitingForSynch = false;
+      });
+    });
   }
 }

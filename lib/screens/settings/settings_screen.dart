@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_app/communication/device_manager.dart';
 import 'package:mobile_app/communication/devices_listener.dart';
+import 'package:mobile_app/model/mobile/data/status_mobile_data.dart';
+import 'package:mobile_app/model/stage/status_stage_data.dart';
 import 'package:mobile_app/utils/app_routes.dart';
 import 'package:mobile_app/widgets/bottom_nav.dart';
 import 'package:mobile_app/screens/settings/widgets/connection_panel.dart';
@@ -16,6 +18,13 @@ class SettingsScreen extends StatefulWidget {
 
 class SettingsScreenState extends State<SettingsScreen>
   with DevicesListener {
+
+  // gets status from both devices, mainly for synch status, Maybe it's not neccessery
+  @override
+  bool get fetchStageStatus => true;
+  
+  @override
+  bool get fetchMobileStatus => true;
 
   ConnectionPanelRole _getRoleForMobileDevice() {
     final mode = DeviceManager.instance.mode;
@@ -39,7 +48,7 @@ class SettingsScreenState extends State<SettingsScreen>
       appBar: StatisticsAppBar(
         isMobileConnected: DeviceManager.instance.mobile.isConnected, 
         isStageConnected: DeviceManager.instance.stage.isConnected, 
-        isSynchEnabled: false
+        isSynchEnabled: DeviceManager.instance.isSynchActive
       ),
       bottomNavigationBar: BottomNav(currentRoute: AppRoutes.settings, isMobileConnected: DeviceManager.instance.mobile.isConnected, isStageConnected: DeviceManager.instance.stage.isConnected),
       backgroundColor: AppColors.backgroundColor,
@@ -98,9 +107,35 @@ class SettingsScreenState extends State<SettingsScreen>
   }
   
   @override
+  void onStageSynchStateChanged(bool state) {
+    super.onStageSynchStateChanged(state);
+    debugPrint("[SettingsScreenState] stage synch state changed: $state");
+  }
+
+  @override
   void onMobileConnectionChanged(bool isConnected) {
     super.onMobileConnectionChanged(isConnected);
     debugPrint("[SettingsScreenState] mobile connection status changed: $isConnected");
+    setState(() {});
+  }
+
+  @override
+  void onMobileSynchStateChanged(bool state) {
+    super.onMobileSynchStateChanged(state);
+    debugPrint("[SettingsScreenState] mobile synch state changed: $state");
+  }
+
+  @override
+  void onMobileDataReceived(StatusMobileData data) {
+    super.onMobileDataReceived(data);
+    debugPrint("[SettingsScreenState] mobile data received: $data");
+    setState(() {});
+  }
+
+  @override
+  void onStageDataReceived(StatusStageData data) {
+    super.onStageDataReceived(data);
+    debugPrint("[SettingsScreenState] stage data received: $data");
     setState(() {});
   }
 

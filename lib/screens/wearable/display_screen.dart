@@ -62,7 +62,7 @@ class DisplayScreenState extends State<DisplayScreen>
       appBar: StatisticsAppBar(
         isMobileConnected: DeviceManager.instance.mobile.isConnected,
         isStageConnected: DeviceManager.instance.stage.isConnected,
-        isSynchEnabled: false
+        isSynchEnabled: DeviceManager.instance.isSynchActive
       ),
       bottomNavigationBar: BottomNav(currentRoute: AppRoutes.wearableDisplay, isMobileConnected: DeviceManager.instance.mobile.isConnected, isStageConnected: DeviceManager.instance.stage.isConnected),
       backgroundColor: const Color.fromARGB(255, 40, 53, 87),
@@ -113,22 +113,34 @@ class DisplayScreenState extends State<DisplayScreen>
   @override
   void onMobileConnectionChanged(bool isConnected) {
     super.onMobileConnectionChanged(isConnected);
-    debugPrint("[StageLedStripScreenState] mobile connection status changed: $isConnected");
+    debugPrint("[DisplayScreenState] mobile connection status changed: $isConnected");
     setState(() {});
   }
 
   @override
   void onStageConnectionChanged(bool isConnected) {
     super.onStageConnectionChanged(isConnected);
-    debugPrint("[StageLedStripScreenState] stage connection status changed: $isConnected");
+    debugPrint("[DisplayScreenState] stage connection status changed: $isConnected");
     setState(() {});
   }
 
   @override
   void onMobileDataReceived(StatusMobileData data) {
     super.onMobileDataReceived(data);
-    debugPrint("[StageLedStripScreenState] mobile data received: $data");
+    debugPrint("[DisplayScreenState] mobile data received: $data");
     currentDisplayData = data.displayData;
     setState(() {});
+  }
+
+  @override
+  void onStageSynchStateChanged(bool state) {
+    super.onStageSynchStateChanged(state);
+    debugPrint("[DisplayScreenState] stage synch state changed: $state");
+  }
+
+  @override
+  void onMobileSynchStateChanged(bool state) {
+    super.onMobileSynchStateChanged(state);
+    debugPrint("[DisplayScreenState] mobile synch state changed: $state");
   }
 }

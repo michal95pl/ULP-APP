@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:mobile_app/communication/model/receive_command_type.dart';
+import 'package:mobile_app/communication/model/received_packet.dart';
 import 'package:mobile_app/communication/model/send_command_type.dart';
 import 'package:mobile_app/communication/model/connection_error.dart';
 import 'package:mobile_app/communication/model/host_type.dart';
@@ -18,13 +19,15 @@ abstract class DeviceCommunication<T> {
   final StreamController<bool> _connectionStatusController = StreamController<bool>.broadcast();
   final StreamController<T> _statusDataController = StreamController<T>.broadcast();
   final StreamController<ConnectionError> _errorController = StreamController<ConnectionError>.broadcast();
-  final StreamController<String> _receivedDataController = StreamController<String>.broadcast();
+  final StreamController<ReceivedPacket> _receivedDataController = StreamController<ReceivedPacket>.broadcast();
+  final StreamController<bool> _receivedSynchStatusController = StreamController<bool>.broadcast();
 
   Stream<bool> get statusStream => _connectionStatusController.stream;
   Stream<T> get statusDataStream => _statusDataController.stream;
   Stream<ConnectionError> get errorStream => _errorController.stream;
+  Stream<bool> get receivedSynchStatusStream => _receivedSynchStatusController.stream;
   // Stream of specific data received from the device to be handled by the specific communication class (e.g., MobileCommunication, StageCommunication)
-  Stream<String> get receivedDataStream => _receivedDataController.stream;
+  Stream<ReceivedPacket> get receivedDataStream => _receivedDataController.stream;
 
   @protected
   late SocketChannel connection;
@@ -51,7 +54,7 @@ abstract class DeviceCommunication<T> {
   }
 
   void _bindStreams() {
-    _dataSub = connection.receivedDataStream.listen((rawData) => _onRawDataReceived(rawData));
+    _dataSub = connection.receivedDataStream.listen((packet) => _onRawDataReceived(packet));
     _statusSub = connection.statusStream.listen((status) {
       if (!status) {
         isConnected = false;
@@ -61,16 +64,15 @@ abstract class DeviceCommunication<T> {
     _errorSub = connection.errorStream.listen((error) => _errorController.add(error));
   }
 
-  Future<void> _onRawDataReceived(String rawData) async {
-    if (rawData.isEmpty) return;
+  Future<void> _onRawDataReceived(ReceivedPacket packet) async {
     try {
-      if (rawData.startsWith(ReceiveCommandType.writeStatus.code)) {
-        var jsonData = rawData.substring(3).trim();
+      if (packet.commandType.startsWith(ReceiveCommandType.writeStatus.code)) {
+        var jsonData = packet.payloadAsString;
         _statusDataController.add(parseData(jsonData));
         debugPrint("[SocketConnection] Received status data: $jsonData");
 
-      } else if (rawData.startsWith(ReceiveCommandType.writeHostInfo.code)) {
-        var jsonData = rawData.substring(3).trim();
+      } else if (packet.commandType.startsWith(ReceiveCommandType.writeHostInfo.code)) {
+        var jsonData = packet.payloadAsString;
         final Map<String, dynamic> data = jsonDecode(jsonData) as Map<String, dynamic>;
         hostName = data['hostName'] as String? ?? 'Unknown Host';
         hostType = HostType.fromString(data['hostType'] as String?);
@@ -86,9 +88,13 @@ abstract class DeviceCommunication<T> {
           await connection.closeConnection();
         }
         debugPrint("[SocketConnection] Received WHO command: $data");
-        // We do not need to handle in the upper layer tunneled commands
-      } else if (rawData[0] != 'T' && rawData[0] != 'F') {
-        _receivedDataController.add(rawData);
+        
+      } else if (packet.commandType.startsWith(ReceiveCommandType.writeSynchStatus.code)) {
+        _receivedSynchStatusController.add(packet.payload[0] == 1);
+      }
+      // We do not need to handle in the upper layer tunneled commands
+      else if (packet.commandType[0] != 'T' && packet.commandType[0] != 'F') {
+        _receivedDataController.add(packet);
       }
     } catch (e) {
       debugPrint("[DeviceCommunication] Error parsing data: $e");
