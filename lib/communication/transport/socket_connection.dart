@@ -18,8 +18,9 @@ class SocketConnection implements SocketChannel {
 
   static const int _connectionTimeout = 2;
   static const int _commandTypeLength = 3;
+  static const int _reservedLength = 1;
   static const int _payloadSizeLength = 2;
-  static const int _preambleLength = _commandTypeLength + _payloadSizeLength;
+  static const int _preambleLength = _commandTypeLength + _reservedLength + _payloadSizeLength;
 
   // wait for ack from the server. ESP32 will send ack after receiving command.
   // It us used to synchronize with microcontrollers
@@ -67,7 +68,7 @@ class SocketConnection implements SocketChannel {
         Uint8List currentBytes = bytesBuffer.toBytes();
 
         while (currentBytes.length >= _preambleLength) {
-          final int payloadLength = (currentBytes[3] << 8) | currentBytes[4];
+          final int payloadLength = (currentBytes[4] << 8) | currentBytes[5];
           final int totalPacketLength = _preambleLength + payloadLength;
 
           // waiting for all bytes
@@ -156,6 +157,7 @@ class SocketConnection implements SocketChannel {
       final builder = BytesBuilder(copy: false);
 
       builder.add(ascii.encode(typeCommand));
+      builder.add([0x00]);
       // length of data is 2 bytes
       builder.add([
         (payload.length >> 8) & 0xFF,
@@ -164,7 +166,7 @@ class SocketConnection implements SocketChannel {
       if (payload.isNotEmpty) {
         builder.add(payload);
       }
-      // preambula has type of command (3 bytes) and length of data (2 bytes). Length of data is used to devide commands on the server side
+      // preambula has type of command (3 bytes), reserve 1 byte and length of data (2 bytes). Length of data is used to devide commands on the server side
       _socket!.add(builder.toBytes());
       await _socket!.flush();
       await _ackCompleter!.future.timeout(const Duration(seconds: 1));

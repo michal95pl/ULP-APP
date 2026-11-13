@@ -17,8 +17,8 @@ enum SendCommandType {
   writeSynch('WSY'),
 
   // Commands to handle the tunnel connection
-  writeTunnelConnect('TTC'),
-  writeTunnelDisconnect('TTD');
+  writeTunnelConnect('WTC'),
+  writeTunnelDisconnect('WTD');
 
 
   final String code;

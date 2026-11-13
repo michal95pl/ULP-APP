@@ -7,15 +7,15 @@ import 'package:mobile_app/model/stage/effects/stage_analog_strip_effects.dart';
 
 class StatusStageData {
   
-  final List<StageStripData<StageAddresableStripEffects>> addresableStrips;
+  final List<StageStripData<StageAddresableStripEffects>> addressableStrips;
   final List<StageStripData<StageAnalogStripEffects>> analogStrips;
   bool synchEnabled;
 
   StatusStageData({
-    required this.addresableStrips,
+    required this.addressableStrips,
     required this.analogStrips,
     required this.synchEnabled
-  })  : assert(addresableStrips.length == 2, 'Addresable strips must have a length of 2'),
+  })  : assert(addressableStrips.length == 2, 'Addresable strips must have a length of 2'),
         assert(analogStrips.length == 2, 'Analog strips must have a length of 2'); 
 
   static StatusStageData getStatusData(String data) {
@@ -25,13 +25,13 @@ class StatusStageData {
     List<StageStripData<StageAddresableStripEffects>> parsedAddressable = [];
     List<StageStripData<StageAnalogStripEffects>> parsedAnalog = [];
 
-    for (var item in statusData['addresableStrips']) {
+    for (var item in statusData['addressableStrips']) {
       parsedAddressable.add(
         StageStripData<StageAddresableStripEffects>(
           brightness: item['brightness'].toInt(),
           effect: StageAddresableStripEffects.values[item['effect'].toInt()],
-          senitivity: item['senitivity'].toInt(),
-          treshold: item['treshold'].toInt(),
+          senitivity: item['sensitivity'].toInt(),
+          treshold: item['threshold'].toInt(),
           smoothness: item['smoothness'].toInt(),
           speedEffect: item['speedEffect'].toInt(),
           color1: Color.fromARGB(
@@ -55,8 +55,8 @@ class StatusStageData {
         StageStripData<StageAnalogStripEffects>(
           brightness: item['brightness'].toInt(),
           effect: StageAnalogStripEffects.values[item['effect'].toInt()],
-          senitivity: item['senitivity'].toInt(),
-          treshold: item['treshold'].toInt(),
+          senitivity: item['sensitivity'].toInt(),
+          treshold: item['threshold'].toInt(),
           smoothness: item['smoothness'].toInt(),
           speedEffect: item['speedEffect'].toInt(),
           color1: Color.fromARGB(
@@ -76,7 +76,7 @@ class StatusStageData {
     }
   
     return StatusStageData(
-      addresableStrips: parsedAddressable,
+      addressableStrips: parsedAddressable,
       analogStrips: parsedAnalog,
       synchEnabled: synch
     );

@@ -24,7 +24,7 @@ with DevicesListener, RequiresStageConnection {
   @override
   Widget build(BuildContext context) {
   List<StageStripData<StageAddresableStripEffects>> addresableStrips = 
-    DeviceManager.instance.lastStageStatus?.addresableStrips ?? 
+    DeviceManager.instance.lastStageStatus?.addressableStrips ?? 
     List.generate(
       2,
       (index) => StageStripData.getDefaultData(

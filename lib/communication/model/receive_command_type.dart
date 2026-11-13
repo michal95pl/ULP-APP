@@ -11,8 +11,8 @@ enum ReceiveCommandType {
   writeDisplayFrame('WDF'),
   writeSynchStatus('WSS'),
 
-  tunnelWriteConnectionStatus('TCS'),
-  tunnelWriteConnectionError('TCE');
+  tunnelWriteConnectionStatus('WCS'),
+  tunnelWriteConnectionError('WCE');
 
   final String code;
   const ReceiveCommandType(this.code);
